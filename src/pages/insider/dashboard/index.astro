@@ -1,8 +1,20 @@
 ---
+import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
+import UpcomingCalls from "./_components/upcomingCalls.svelte";
+
+const queryDate = new Date();
+queryDate.setHours(0, 0, 0, 0);
+
+const upcomingCalls = (
+  await Astro.callAction(actions.calls.getUpcoming, queryDate)
+).data;
+
 export const prerender = false;
 ---
 
-<Layout>
-  <h1>Insider Dashboard</h1>
+<Layout class="justify-center items-center">
+  <section class="p-4 min-w-sm max-w-md">
+    <UpcomingCalls client:load calls={upcomingCalls} />
+  </section>
 </Layout>

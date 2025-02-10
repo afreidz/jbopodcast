@@ -1,4 +1,4 @@
-import client from "$/lib/client";
+import client from "$/lib/supabase";
 import { defineMiddleware } from "astro:middleware";
 
 const ALLOW_LIST = ["/insider/auth/signin", "/insider/auth/register"];
@@ -22,11 +22,11 @@ export const onRequest = defineMiddleware(
       access_token,
     });
 
-    if (data.user) {
-      locals.user = {
-        id: data.user.id,
-      };
-    }
+    if (!data.user) return redirect("/insider/auth/signin");
+
+    locals.user = {
+      id: data.user.id,
+    };
 
     return next();
   }

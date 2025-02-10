@@ -1,0 +1,32 @@
+---
+import { actions } from "astro:actions";
+import Layout from "$/layouts/Layout.astro";
+import CallForm from "./_components/callForm.svelte";
+import { Button, buttonVariants } from "$/components/ui/button";
+
+const members = (await Astro.callAction(actions.members.getAll, null)).data;
+
+const result = Astro.getActionResult(actions.calls.create);
+console.log(result);
+
+export const prerender = false;
+---
+
+<Layout>
+  <form
+    class="mx-auto grid max-w-screen-xl gap-4 p-4"
+    method="POST"
+    action={actions.calls.create}
+  >
+    <div class="flex-1">
+      <CallForm client:load allMembers={members} />
+    </div>
+    <footer class="flex justify-between mx-auto w-full">
+      <a
+        href="/insider/dashboard"
+        class={buttonVariants({ variant: "outline" })}>Cancel</a
+      >
+      <Button type="submit">Create Call</Button>
+    </footer>
+  </form>
+</Layout>

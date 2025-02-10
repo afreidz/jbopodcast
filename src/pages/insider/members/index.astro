@@ -1,0 +1,9 @@
+---
+import Layout from "$/layouts/Layout.astro";
+import List from "./_components/list.svelte";
+export const prerender = false;
+---
+
+<Layout>
+  <List client:load />
+</Layout>

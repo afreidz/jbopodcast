@@ -1,6 +1,8 @@
 ---
 import "$/styles/global.css";
 import { ModeWatcher } from "mode-watcher";
+
+let { class: classList } = Astro.props;
 ---
 
 <!doctype html>
@@ -12,7 +14,7 @@ import { ModeWatcher } from "mode-watcher";
     <meta name="generator" content={Astro.generator} />
     <title>Just a Bit Outside Podcast</title>
   </head>
-  <body>
+  <body class={classList}>
     <slot />
     <ModeWatcher client:load />
   </body>

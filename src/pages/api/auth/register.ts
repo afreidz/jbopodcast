@@ -1,4 +1,4 @@
-import client from "$/lib/client";
+import client from "$/lib/supabase";
 import type { APIRoute } from "astro";
 
 export const prerender = false;
