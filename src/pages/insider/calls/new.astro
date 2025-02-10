@@ -6,8 +6,7 @@ import { Button, buttonVariants } from "$/components/ui/button";
 
 const members = (await Astro.callAction(actions.members.getAll, null)).data;
 
-const result = Astro.getActionResult(actions.calls.create);
-console.log(result);
+// const result = Astro.getActionResult(actions.calls.create);
 
 export const prerender = false;
 ---
