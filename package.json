@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "migrate": "prisma migrate",
+    "migrate": "prisma migrate deploy",
     "astro": "astro"
   },
   "engines": {
