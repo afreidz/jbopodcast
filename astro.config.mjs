@@ -9,6 +9,10 @@ export default defineConfig({
   integrations: [svelte()],
   devToolbar: { enabled: false },
 
+  build: {
+    inlineStylesheets: "never",
+  },
+
   env: {
     schema: {
       SB_DB_SR_KEY: envField.string({ context: "server", access: "secret" }),
