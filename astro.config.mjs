@@ -1,12 +1,12 @@
 // @ts-check
 import svelte from "@astrojs/svelte";
 import netlify from "@astrojs/netlify";
-import tailwindcss from "@tailwindcss/vite";
+import tailwind from "@astrojs/tailwind";
 import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [svelte()],
+  integrations: [svelte(), tailwind({ applyBaseStyles: false })],
   devToolbar: { enabled: false },
 
   build: {
@@ -30,7 +30,6 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()],
     build: {
       cssCodeSplit: false,
     },

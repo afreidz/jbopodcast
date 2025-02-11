@@ -130,7 +130,7 @@
     </div>
   {:else}
     <div
-      class="relative rounded-2xl size-full overflow-hidden border-accent border-8"
+      class="relative rounded-2xl w-full h-full overflow-hidden border-accent border-8"
     >
       <video
         muted

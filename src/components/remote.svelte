@@ -55,7 +55,7 @@
     </div>
   {:else if connection?.stream}
     <div
-      class="relative rounded-2xl size-full overflow-hidden border-accent border-8"
+      class="relative rounded-2xl h-full w-full overflow-hidden border-accent border-8"
     >
       <!-- svelte-ignore a11y_media_has_caption -->
       <video
