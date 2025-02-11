@@ -21,19 +21,6 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
-    optimizeDeps: {
-      exclude: ["@prisma/client"],
-    },
-    build: {
-      rollupOptions: {
-        external: ["@prisma/client"],
-        output: {
-          globals: {
-            "@prisma/client": "PrismaClient",
-          },
-        },
-      },
-    },
   },
   adapter: cloudflare({
     platformProxy: { enabled: true },
