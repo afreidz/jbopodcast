@@ -1,11 +1,4 @@
-import pg from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
-import { DATABASE_URL } from "astro:env/server";
+import { Prisma, PrismaClient } from "@prisma/client";
 
-const connectionString = `${DATABASE_URL}`;
-
-const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-export default prisma;
+const client = new PrismaClient();
+export default client;

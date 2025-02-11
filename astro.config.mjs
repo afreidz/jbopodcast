@@ -1,13 +1,15 @@
 // @ts-check
 import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
-import cloudflare from "@astrojs/cloudflare";
 import { defineConfig, envField } from "astro/config";
+
+import netlify from "@astrojs/netlify";
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [svelte()],
   devToolbar: { enabled: false },
+
   env: {
     schema: {
       SB_DB_SR_KEY: envField.string({ context: "server", access: "secret" }),
@@ -19,10 +21,10 @@ export default defineConfig({
       DIRECT_URL: envField.string({ context: "server", access: "secret" }),
     },
   },
+
   vite: {
     plugins: [tailwindcss()],
   },
-  adapter: cloudflare({
-    platformProxy: { enabled: true },
-  }),
+
+  adapter: netlify(),
 });
