@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "generate": "prisma generate",
     "migrate": "prisma migrate deploy",
+    "types": "source .env && npx supabase gen types typescript --project-id $PUBLIC_SB_PROJECT_ID > ./src/lib/types/supabase.ts",
     "astro": "astro"
   },
   "engines": {
@@ -28,7 +29,7 @@
     "@internationalized/date": "^3.7.0",
     "@types/gravatar": "^1.8.6",
     "@types/node": "^22.13.1",
-    "bits-ui": "^1.0.0-next.92",
+    "bits-ui": "^1.0.0-next.94",
     "clsx": "^2.1.1",
     "gravatar": "^1.8.2",
     "lucide-svelte": "^0.475.0",
@@ -37,6 +38,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^3.3.3",
     "prisma": "^6.3.1",
+    "supabase": "^2.12.0",
     "svelte-sonner": "^0.3.28",
     "tailwind-merge": "^3.0.1",
     "tailwind-variants": "^0.3.1",

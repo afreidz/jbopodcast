@@ -13,12 +13,16 @@ export default defineConfig({
   env: {
     schema: {
       SB_DB_SR_KEY: envField.string({ context: "server", access: "secret" }),
-      PUBLIC_SB_PROJECT_ID: envField.string({
-        context: "server",
-        access: "public",
-      }),
       DATABASE_URL: envField.string({ context: "server", access: "secret" }),
       DIRECT_URL: envField.string({ context: "server", access: "secret" }),
+      PUBLIC_SB_ANON_KEY: envField.string({
+        context: "client",
+        access: "public",
+      }),
+      PUBLIC_SB_PROJECT_ID: envField.string({
+        context: "client",
+        access: "public",
+      }),
     },
   },
 
@@ -26,5 +30,8 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  adapter: netlify(),
+  adapter: netlify({
+    edgeMiddleware: true,
+    cacheOnDemandPages: false,
+  }),
 });

@@ -20,12 +20,12 @@
     title?: string;
     scheduled: Date;
     members?: string[];
-    allMembers: Member[];
+    availableMembers: Member[];
   };
 
   let {
-    allMembers,
     id = $bindable(),
+    availableMembers = [],
     title = $bindable(""),
     scheduled = $bindable(
       now(getLocalTimeZone())
@@ -183,40 +183,44 @@ after:pointer-events-none
       </div>
     </ScrollArea>
   </div>
-  <div class="flex flex-1 flex-col items-center gap-3">
-    <Card.Title>Members</Card.Title>
-    <ScrollArea class={scrollShadowClasses}>
-      <div class="hidden">
-        <select bind:value={callMembers} name="guests" multiple>
-          {#each allMembers as member}
-            <option value={member.id}>{member.id}</option>
-          {/each}
-        </select>
-      </div>
-      <ToggleGroup.Root
-        type="multiple"
-        variant="outline"
-        bind:value={callMembers}
-        class="flex flex-col gap-3 pb-8"
-      >
-        {#each allMembers as member}
-          <ToggleGroup.Item
-            value={member.id}
-            class="flex !h-auto w-full justify-start !p-4 text-left first-of-type:z-20"
-            aria-label={`Toggle ${member.name} on new call`}
-          >
-            <div class="flex items-center gap-3">
-              <Avatar name={member.name} email={member.user.email} />
-              <div class="flex flex-col">
-                <span class="font-medium">{member.name}</span>
-                <span class="text-sm text-muted-foreground"
-                  >{member.handle}</span
-                >
+  {#if availableMembers.length}
+    <div class="flex flex-1 flex-col items-center gap-3">
+      <Card.Title>Members</Card.Title>
+      <ScrollArea class={scrollShadowClasses}>
+        <div class="hidden">
+          <select bind:value={callMembers} name="guests" multiple>
+            {#each availableMembers as member}
+              <option value={member.id}>{member.id}</option>
+            {/each}
+          </select>
+        </div>
+        <ToggleGroup.Root
+          type="multiple"
+          variant="outline"
+          bind:value={callMembers}
+          class="flex flex-col gap-3 pb-8"
+        >
+          {#each availableMembers as member}
+            <ToggleGroup.Item
+              value={member.id}
+              class="flex !h-auto w-full justify-start !p-4 text-left first-of-type:z-20"
+              aria-label={`Toggle ${member.name} on new call`}
+            >
+              <div class="flex items-center gap-3">
+                <Avatar name={member.name} email={member.user.email!} />
+                <div class="flex flex-col">
+                  <span class="font-medium"
+                    >{member.name || member.user.email}</span
+                  >
+                  <span class="text-sm text-muted-foreground"
+                    >{member.handle}</span
+                  >
+                </div>
               </div>
-            </div>
-          </ToggleGroup.Item>
-        {/each}
-      </ToggleGroup.Root>
-    </ScrollArea>
-  </div>
+            </ToggleGroup.Item>
+          {/each}
+        </ToggleGroup.Root>
+      </ScrollArea>
+    </div>
+  {/if}
 </section>

@@ -1,14 +1,13 @@
 ---
+export const prerender = false;
 import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
 import CallForm from "./_components/callForm.svelte";
 import { Button, buttonVariants } from "$/components/ui/button";
 
-const members = (await Astro.callAction(actions.members.getAll, null)).data;
-
-// const result = Astro.getActionResult(actions.calls.create);
-
-export const prerender = false;
+const availableMembers = (
+  await Astro.callAction(actions.members.getAll, null)
+).data?.filter((m) => m.id !== Astro.locals.user.id);
 ---
 
 <Layout>
@@ -18,7 +17,7 @@ export const prerender = false;
     action={actions.calls.create}
   >
     <div class="flex-1">
-      <CallForm client:load allMembers={members} />
+      <CallForm client:load {availableMembers} />
     </div>
     <footer class="flex justify-between mx-auto w-full">
       <a

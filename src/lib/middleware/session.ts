@@ -1,4 +1,5 @@
 import client from "$/lib/supabase";
+import prismaClient from "$/lib/prisma";
 import { defineMiddleware } from "astro:middleware";
 
 const ALLOW_LIST = ["/insider/auth/signin", "/insider/auth/register"];
@@ -24,8 +25,18 @@ export const onRequest = defineMiddleware(
 
     if (!data.user) return redirect("/insider/auth/signin");
 
+    const member = await prismaClient.members.findFirst({
+      where: { id: data.user.id },
+    });
+
+    if (!member) return redirect("/404");
+
     locals.user = {
       id: data.user.id,
+      role: member.role,
+      name: member.name,
+      handle: member.handle,
+      email: data.user.email!,
     };
 
     return next();

@@ -29,7 +29,7 @@
   let localDate = $derived(localDTZ.toDate());
 </script>
 
-<Card.Root>
+<Card.Root class="group mb-2">
   <a
     class:pointer-events-nont={details.disabled}
     href={`/insider/calls/${call.id}/join`}
@@ -54,15 +54,31 @@
       <Card.Title class="text-xl">{call.title}</Card.Title>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
-      <Avatar
-        class="size-6"
-        name={call.host.name}
-        email={call.host.user.email}
-      />
-      <div class="flex -space-x-4">
-        {#each call.guests as guest}
-          <Avatar class="size-6" name={guest.name} email={guest.user.email} />
-        {/each}
+      <div class="flex flex-col items-center gap-1.5">
+        <small
+          class="text-xs flex-none text-muted-foreground duration-300 transition-opacity opacity-0 group-hover:opacity-100"
+          >Host</small
+        >
+        <Avatar
+          class="size-6"
+          name={call.host.name}
+          email={call.host.user.email!}
+        />
+      </div>
+      <div class="flex flex-col items-center gap-1.5">
+        <small
+          class="text-xs flex-none text-muted-foreground duration-300 transition-opacity opacity-0 group-hover:opacity-100"
+          >Guests</small
+        >
+        <div dir="rtl" class="flex -space-x-2">
+          {#each call.guests as guest}
+            <Avatar
+              class="size-6"
+              name={guest.name}
+              email={guest.user.email!}
+            />
+          {/each}
+        </div>
       </div>
     </Card.Footer>
   </a>

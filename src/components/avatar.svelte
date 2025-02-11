@@ -3,9 +3,9 @@
   import * as Avatar from "$/components/ui/avatar";
 
   type Props = {
+    email: string;
     class?: string;
     name?: string | null;
-    email?: string | null;
   };
 
   let { email, name, class: classlist = "" }: Props = $props();

@@ -60,4 +60,17 @@ export const getUpcoming = defineAction({
   },
 });
 
+export const getById = defineAction({
+  input: z.string(),
+  handler: async (id) => {
+    return await client.calls.findFirst({
+      where: { id },
+      include: { ...callIncludes, connections: true },
+    });
+  },
+});
+
 export type Call = Prisma.callsGetPayload<{ include: typeof callIncludes }>;
+export type CallWithConnections = Prisma.callsGetPayload<{
+  include: typeof callIncludes & { connections: true };
+}>;

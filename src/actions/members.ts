@@ -14,6 +14,12 @@ export const getAll = defineAction({
   },
 });
 
+export const getMe = defineAction({
+  handler: (_, context) => {
+    return context.locals.user;
+  },
+});
+
 export type Member = Prisma.membersGetPayload<{
   include: typeof memberIncludes;
 }>;
