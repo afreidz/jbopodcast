@@ -1,9 +1,8 @@
 // @ts-check
 import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig, envField } from "astro/config";
-
 import cloudflare from "@astrojs/cloudflare";
+import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
@@ -22,8 +21,20 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: ["@prisma/client"],
+    },
+    build: {
+      rollupOptions: {
+        external: ["@prisma/client"],
+        output: {
+          globals: {
+            "@prisma/client": "PrismaClient",
+          },
+        },
+      },
+    },
   },
-
   adapter: cloudflare({
     platformProxy: { enabled: true },
   }),
