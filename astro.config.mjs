@@ -31,6 +31,9 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      cssCodeSplit: false,
+    },
   },
 
   adapter: netlify({
