@@ -6,10 +6,13 @@ import UpcomingCalls from "./_components/upcomingCalls.svelte";
 const queryDate = new Date();
 queryDate.setHours(0, 0, 0, 0);
 
-const upcomingCalls = (
-  await Astro.callAction(actions.calls.getUpcoming, queryDate)
-).data;
+const ucResponse = await Astro.callAction(actions.calls.getUpcoming, queryDate);
+if (ucResponse.error) {
+  console.error(ucResponse.error);
+  return Astro.redirect("/400");
+}
 
+const upcomingCalls = ucResponse.data;
 export const prerender = false;
 ---
 
