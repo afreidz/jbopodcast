@@ -60,8 +60,8 @@
           >Host</small
         >
         <Avatar
-          class="size-6"
           name={call.host.name}
+          class="size-6 text-xs"
           email={call.host.user.email!}
         />
       </div>
@@ -73,8 +73,8 @@
         <div dir="rtl" class="flex -space-x-2">
           {#each call.guests as guest}
             <Avatar
-              class="size-6"
               name={guest.name}
+              class="size-6 text-xs"
               email={guest.user.email!}
             />
           {/each}

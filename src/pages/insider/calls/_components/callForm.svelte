@@ -5,12 +5,14 @@
   } from "@internationalized/date";
 
   import { toast } from "svelte-sonner";
+  import Configure from "./configure.svelte";
   import * as Card from "$/components/ui/card";
   import { Label } from "$/components/ui/label";
   import { Input } from "$/components/ui/input";
   import type { Member } from "$/actions/members";
   import Avatar from "$/components/avatar.svelte";
   import { Calendar } from "$/components/ui/calendar";
+  import { scrollShadowClasses } from "$/lib/classes";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import * as ToggleGroup from "$/components/ui/toggle-group";
   import { now, getLocalTimeZone } from "@internationalized/date";
@@ -97,40 +99,6 @@
       .toDate();
     return;
   }
-
-  const scrollShadowClasses = `
-h-80
-relative
-w-[320px]
-
-before:h-6
-before:z-10
-before:top-0
-before:w-full
-before:left-0
-before:right-0
-before:absolute
-before:content-['']
-before:to-transparent
-before:from-background
-before:bg-gradient-to-b
-before:pointer-events-none
-
-after:h-6
-after:z-10
-after:w-full
-after:left-0
-after:right-0
-after:bottom-0
-after:absolute
-after:content-['']
-after:to-background
-after:from-transparent
-after:bg-gradient-to-b
-after:pointer-events-none
-		`
-    .split("\n")
-    .join(" ");
 </script>
 
 <section class="m-4 flex flex-wrap items-start gap-3">
@@ -163,7 +131,7 @@ after:pointer-events-none
   </div>
   <div class="flex flex-1 flex-col items-center gap-3">
     <Card.Title>Time</Card.Title>
-    <ScrollArea class={scrollShadowClasses}>
+    <ScrollArea class={`w-[320px] h-80 ${scrollShadowClasses}`}>
       <div class="flex flex-col gap-3 pb-8">
         <ToggleGroup.Root
           type="single"
@@ -186,7 +154,7 @@ after:pointer-events-none
   {#if availableMembers.length}
     <div class="flex flex-1 flex-col items-center gap-3">
       <Card.Title>Members</Card.Title>
-      <ScrollArea class={scrollShadowClasses}>
+      <ScrollArea class={`w-[320px] h-80 ${scrollShadowClasses}`}>
         <div class="hidden">
           <select bind:value={callMembers} name="guests" multiple>
             {#each availableMembers as member}
@@ -224,3 +192,5 @@ after:pointer-events-none
     </div>
   {/if}
 </section>
+<Card.Title class="mt-8 m-4 text-center">Configure Scenes</Card.Title>
+<Configure />

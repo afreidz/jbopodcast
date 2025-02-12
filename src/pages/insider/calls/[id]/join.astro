@@ -16,6 +16,12 @@ if (response.error) {
 
 const call = response.data;
 if (!call) return Astro.redirect("/404");
+
+if (
+  !me?.id ||
+  (call.hostId !== me.id && !call.guests.some((g) => g.id === me.id))
+)
+  return Astro.redirect("/401");
 ---
 
 <Layout class="flex-1">
