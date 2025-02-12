@@ -3,20 +3,22 @@ import client from "$/lib/prisma";
 import { memberIncludes } from "./members";
 import { defineAction } from "astro:actions";
 import type { Prisma } from "@prisma/client";
+import { sceneIncludes, SceneCreateSchema } from "./scenes";
 
 export const create = defineAction({
-  accept: "form",
   input: z.object({
+    hostId: z.string(),
     scheduled: z.coerce.date(),
     guests: z.array(z.string()),
     title: z.string().min(3).max(100),
+    scenes: z.array(SceneCreateSchema.omit({ callId: true })),
   }),
-  handler: async (input, context) => {
-    const { guests, ...data } = input;
+  handler: async (input) => {
+    const { guests, scenes, ...data } = input;
     return await client.calls.create({
       data: {
         ...data,
-        hostId: context.locals.user.id,
+        scenes: { createMany: { data: scenes } },
         guests: { connect: guests.map((id) => ({ id })) },
       },
     });
@@ -30,6 +32,7 @@ export const callIncludes = {
   host: {
     include: memberIncludes,
   },
+  scenes: { include: sceneIncludes },
 };
 
 export const getUpcoming = defineAction({

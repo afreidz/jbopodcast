@@ -1,5 +1,6 @@
 ---
 import "$/styles/global.css";
+import { Toaster } from "svelte-sonner";
 import { ModeWatcher } from "mode-watcher";
 
 let { class: classList } = Astro.props;
@@ -17,6 +18,17 @@ let { class: classList } = Astro.props;
   <body class={classList}>
     <slot />
     <ModeWatcher client:load />
+    <Toaster
+      client:only="svelte"
+      toastOptions={{
+        classes: {
+          error: "border-red-500/50",
+          info: "border-blue-500/50",
+          success: "border-green-500/50",
+          warning: "border-amber-500/50",
+        },
+      }}
+    />
   </body>
 </html>
 

@@ -32,6 +32,11 @@ model members {
   initiatorConnections connection[] @relation("InitiatorRelation")
   receiverConnections  connection[] @relation("ReceiverRelation")
 
+  AInScene scene[] @relation("ScenePositionARelation")
+  BInScene scene[] @relation("ScenePositionBRelation")
+  CInScene scene[] @relation("ScenePositionCRelation")
+  DInScene scene[] @relation("ScenePositionDRelation")
+
   @@schema("public")
 }
 
@@ -47,8 +52,45 @@ model calls {
 
   guests      members[]    @relation("GuestRelation")
   connections connection[]
+  scenes      scene[]
 
   @@unique([scheduled, hostId])
+  @@schema("public")
+}
+
+enum CALL_SCENE {
+  pull
+  twoUp
+  fourUp
+  splash
+  threeUp
+  countdown
+  spotlight
+
+  @@schema("public")
+}
+
+model scene {
+  id String @id @default(uuid()) @db.Uuid
+
+  type  CALL_SCENE
+  label String
+
+  callId String @db.Uuid
+  call   calls  @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  splashImageURL String?
+  countdownMS    Int?
+
+  AID String?  @db.Uuid
+  BID String?  @db.Uuid
+  CID String?  @db.Uuid
+  DID String?  @db.Uuid
+  A   members? @relation("ScenePositionARelation", fields: [AID], references: [id])
+  B   members? @relation("ScenePositionBRelation", fields: [BID], references: [id])
+  C   members? @relation("ScenePositionCRelation", fields: [CID], references: [id])
+  D   members? @relation("ScenePositionDRelation", fields: [DID], references: [id])
+
   @@schema("public")
 }
 

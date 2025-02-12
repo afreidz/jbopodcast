@@ -15,8 +15,11 @@ export const getAll = defineAction({
 });
 
 export const getMe = defineAction({
-  handler: (_, context) => {
-    return context.locals.user;
+  handler: async (_, context) => {
+    return await client.members.findFirst({
+      where: { id: context.locals.user.id },
+      include: memberIncludes,
+    });
   },
 });
 

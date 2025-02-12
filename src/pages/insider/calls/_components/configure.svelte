@@ -1,103 +1,47 @@
 <script lang="ts" module>
-  import { z } from "astro:schema";
-
-  const SplashSchema = z.object({
-    type: z.literal("splash"),
-    image: z.string().url(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const CountdownSchema = z.object({
-    type: z.literal("countdown"),
-    duration: z.number(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const SpotlightSchema = z.object({
-    type: z.literal("spotlight"),
-    A: z.string(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const TwoUpSchema = z.object({
-    type: z.literal("two-up"),
-    A: z.string(),
-    B: z.string(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const ThreeUpSchema = z.object({
-    type: z.literal("three-up"),
-    A: z.string(),
-    B: z.string(),
-    C: z.string(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const FourUpSchema = z.object({
-    type: z.literal("four-up"),
-    A: z.string(),
-    B: z.string(),
-    C: z.string(),
-    D: z.string(),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const PullSchema = z.object({
-    type: z.literal("pull"),
-    A: z.string(),
-    B: z.array(z.string()),
-    label: z.string().min(1).max(25).optional(),
-  });
-
-  const CallConfigSchema = z.object({
-    scenes: z.array(
-      PullSchema.or(SpotlightSchema)
-        .or(TwoUpSchema)
-        .or(SplashSchema)
-        .or(FourUpSchema)
-        .or(ThreeUpSchema)
-        .or(CountdownSchema)
-    ),
-  });
-
-  type Pull = z.infer<typeof PullSchema>;
-  type TwoUp = z.infer<typeof TwoUpSchema>;
-  type Splash = z.infer<typeof SplashSchema>;
-  type FourUp = z.infer<typeof FourUpSchema>;
-  type ThreeUp = z.infer<typeof ThreeUpSchema>;
-  type Spotlight = z.infer<typeof SpotlightSchema>;
-  type Countdown = z.infer<typeof CountdownSchema>;
-
-  export type CallConfig = z.infer<typeof CallConfigSchema>;
-  export type Scenes =
-    | Pull
-    | TwoUp
-    | FourUp
-    | Splash
-    | ThreeUp
-    | Countdown
-    | Spotlight;
+  export { Spotlight, TwoUp, ThreeUp, FourUp, Pull, Splash, Countdown };
+  export type SceneConfiguration = Omit<SceneCreateSchema, "callId">;
 </script>
 
 <script lang="ts">
-  import SplashImage from "lucide-svelte/icons/image";
+  import type { Snippet } from "svelte";
+  import { CALL_SCENE } from "@prisma/client";
+  import { Input } from "$/components/ui/input";
+  import type { Member } from "$/actions/members";
+  import { Button } from "$/components/ui/button";
+  import Avatar from "$/components/avatar.svelte";
+  import * as Dialog from "$/components/ui/dialog";
+  import MemberIcon from "lucide-svelte/icons/user";
+  import SplashIcon from "lucide-svelte/icons/image";
   import { scrollShadowClasses } from "$/lib/classes";
   import { ScrollArea } from "$/components/ui/scroll-area";
-  import type { Snippet } from "svelte";
+  import type { SceneCreateSchema } from "$/actions/scenes";
 
   type Props = {
-    scenes?: Scenes[];
+    availableMembers: Member[];
+    scenes?: SceneConfiguration[];
   };
 
-  let { scenes = $bindable([]) }: Props = $props();
+  let { scenes = $bindable([]), availableMembers = [] }: Props = $props();
+
+  function addScene(type: CALL_SCENE) {
+    scenes.push({
+      type,
+      label: "",
+    });
+  }
 </script>
 
-{#snippet empty()}&nbsp;{/snippet}
+{#snippet empty()}
+  <div class="flex size-full items-center justify-center text-muted">
+    <MemberIcon size={20} strokeWidth={1} />
+  </div>
+{/snippet}
+
 {#snippet emptySidebar()}
-  <i class="border rounded-sm size-3">&nbsp;</i>
-  <i class="border rounded-sm size-3">&nbsp;</i>
-  <i class="border rounded-sm size-3">&nbsp;</i>
+  <MemberIcon size={12} strokeWidth={1} class="text-muted" />
+  <MemberIcon size={12} strokeWidth={1} class="text-muted" />
+  <MemberIcon size={12} strokeWidth={1} class="text-muted" />
 {/snippet}
 
 {#snippet Spotlight(A: Snippet = empty)}
@@ -155,7 +99,7 @@
   </div>
 {/snippet}
 
-{#snippet Pull(A: Snippet = empty, B: Snippet = emptySidebar)}
+{#snippet Pull(A: Snippet = empty, REST: Snippet = emptySidebar)}
   <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input grid-cols-4"
@@ -165,7 +109,7 @@
       <div
         class="bg-background p-1 flex flex-col gap-1 items-center justify-evenly"
       >
-        {@render B()}
+        {@render REST()}
       </div>
     </div>
   </div>
@@ -194,58 +138,200 @@
       <i
         class="bg-background flex items-center justify-center text-xs font-bold text-input"
       >
-        <SplashImage size={30} strokeWidth={1} />
+        <SplashIcon size={30} strokeWidth={1} />
       </i>
     </div>
   </div>
 {/snippet}
 
-<div class="rounded-md border flex">
-  <ScrollArea
-    class="border-r p-4 flex-1 flex flex-col h-96 {scrollShadowClasses}"
+{#snippet SceneSelectButton(
+  icon: Snippet,
+  label: string,
+  e: CALL_SCENE,
+  onclick?: (s: CALL_SCENE) => void
+)}
+  <button
+    type="button"
+    onclick={() => onclick?.(e)}
+    class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
   >
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+    {@render icon()}
+    <strong>{label}</strong>
+  </button>
+{/snippet}
+
+{#snippet SceneMemberButton(
+  scene: SceneConfiguration,
+  position: "AID" | "BID" | "CID" | "DID"
+)}
+  {@const member = availableMembers.find((m) => m.id === scene[position])}
+  <input
+    required
+    type="text"
+    bind:value={scene[position]}
+    class="h-px w-px absolute text-[0px]"
+    name={`pos_${+new Date()}_${position}`}
+    oninvalid={(e) =>
+      e.currentTarget.setCustomValidity(
+        "Please choose a member for this scene location"
+      )}
+  />
+  <Dialog.Root>
+    <Dialog.Trigger
+      type="button"
+      class="size-full flex items-center justify-center"
     >
-      {@render Spotlight()}
-      <strong>Spotlight</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      {#if member}
+        <Avatar
+          name={member.handle || member.name}
+          email={member.user.email!}
+        />
+      {:else}
+        <MemberIcon class="text-muted" />
+      {/if}
+    </Dialog.Trigger>
+    <Dialog.Content class="sm:max-w-[425px]">
+      <Dialog.Header>
+        <Dialog.Title>Add Member to Scene Location</Dialog.Title>
+      </Dialog.Header>
+      {#each availableMembers as member}
+        <Button
+          variant="outline"
+          onclick={() => (scene[position] = member.id)}
+          class="flex justify-start gap-3 p-4 h-auto mb-2"
+        >
+          <Avatar
+            email={member.user.email!}
+            name={member.handle || member.name}
+          />
+          <div class="flex flex-col">
+            <span class="font-medium">{member.name || member.user.email}</span>
+            <span class="text-sm text-muted-foreground">{member.handle}</span>
+          </div>
+        </Button>
+      {/each}
+    </Dialog.Content>
+  </Dialog.Root>
+{/snippet}
+
+<div class="rounded-md border flex">
+  <div class="flex-1 border-r flex flex-col">
+    <strong class="text-center mt-3 text-xs font-semibold uppercase text-muted"
+      >Select a Scene Type</strong
     >
-      {@render TwoUp()}
-      <strong>Two Up</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+    <ScrollArea class="p-4 flex-none flex flex-col h-96 {scrollShadowClasses}">
+      {@render SceneSelectButton(
+        Spotlight,
+        "Spotlight",
+        CALL_SCENE["spotlight"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        TwoUp,
+        "Two Up",
+        CALL_SCENE["twoUp"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        ThreeUp,
+        "Three Up",
+        CALL_SCENE["threeUp"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        FourUp,
+        "Four Up",
+        CALL_SCENE["fourUp"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        Pull,
+        "Pull One",
+        CALL_SCENE["pull"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        Countdown,
+        "Countdown",
+        CALL_SCENE["countdown"],
+        addScene
+      )}
+      {@render SceneSelectButton(
+        Splash,
+        "Splash Screen",
+        CALL_SCENE["splash"],
+        addScene
+      )}
+    </ScrollArea>
+  </div>
+  <div class="flex-1 flex flex-col">
+    <strong class="text-center mt-3 text-xs font-semibold uppercase text-muted"
+      >Configure Scene Members and Labels</strong
     >
-      {@render ThreeUp()}
-      <strong>Three Up</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+    <ScrollArea
+      class="w-full flex flex-wrap gap-2 m-2 h-96 {scrollShadowClasses}"
     >
-      {@render FourUp()}
-      <strong>Four Up</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
-    >
-      {@render Pull()}
-      <strong>Pull One</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
-    >
-      {@render Countdown()}
-      <strong>Countdown</strong>
-    </button>
-    <button
-      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
-    >
-      {@render Splash()}
-      <strong>Splash Screen</strong>
-    </button>
-  </ScrollArea>
-  <article class="flex-[2]"></article>
+      {#each scenes as scene}
+        {#snippet AMember()}
+          {@render SceneMemberButton(scene, "AID")}
+        {/snippet}
+        {#snippet BMember()}
+          {@render SceneMemberButton(scene, "BID")}
+        {/snippet}
+        {#snippet CMember()}
+          {@render SceneMemberButton(scene, "CID")}
+        {/snippet}
+        {#snippet DMember()}
+          {@render SceneMemberButton(scene, "DID")}
+        {/snippet}
+        <div class="flex items-center gap-4">
+          <div class="h-28">
+            {#if scene.type === "spotlight"}
+              {@render Spotlight(AMember)}
+            {:else if scene.type === "twoUp"}
+              {@render TwoUp(AMember, BMember)}
+            {:else if scene.type === "threeUp"}
+              {@render ThreeUp(AMember, BMember, CMember)}
+            {:else if scene.type === "fourUp"}
+              {@render FourUp(AMember, BMember, CMember, DMember)}
+            {:else if scene.type === "pull"}
+              {@render Pull(AMember)}
+            {:else if scene.type === "splash"}
+              {@render Splash()}
+            {:else if scene.type === "countdown"}
+              {@render Countdown()}
+            {/if}
+          </div>
+          <div class="flex flex-1 flex-col gap-2 justify-center">
+            <Input
+              required
+              class="w-[300px]"
+              bind:value={scene.label}
+              placeholder="Scene Label"
+            />
+            {#if scene.type === "countdown"}
+              <Input
+                step={1}
+                required
+                min={1000}
+                type="number"
+                class="w-[300px]"
+                placeholder="Countdown in MS"
+                bind:value={scene.countdownMS}
+              />
+            {/if}
+            {#if scene.type === "splash"}
+              <Input
+                required
+                type="url"
+                class="w-[300px]"
+                bind:value={scene.countdownMS}
+                placeholder="URL for splash image"
+              />
+            {/if}
+          </div>
+        </div>
+      {/each}
+    </ScrollArea>
+  </div>
 </div>

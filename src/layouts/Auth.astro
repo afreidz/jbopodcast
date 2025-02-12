@@ -1,22 +1,12 @@
 ---
 import Layout from "./Layout.astro";
-import { Image } from "astro:assets";
-import Podcast from "$/assets/podcast.webp";
-
 const { class: classList } = Astro.props;
-
-const imageClasses =
-  "inset-0 absolute bg-radial from-transparent to-background pointer-events-none rounded-md";
 ---
 
 <Layout>
   <main class="flex-1 flex items-center justify-center flex-col">
-    <div class="rounded-md border flex max-w-screen-md w-full">
-      <section class="border-r flex-1 overflow-clip relative">
-        <Image src={Podcast} alt="an image of a podcast" class="opacity-50" />
-        <i class={imageClasses}></i>
-      </section>
-      <section class={`flex-1 p-4 ${classList}`}>
+    <div class="rounded-md border flex max-w-screen-md w-full p-8">
+      <section class={`flex-1 ${classList}`}>
         <slot />
       </section>
     </div>

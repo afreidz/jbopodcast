@@ -3,28 +3,15 @@ export const prerender = false;
 import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
 import CallForm from "./_components/callForm.svelte";
-import { Button, buttonVariants } from "$/components/ui/button";
+
+const me = (await Astro.callAction(actions.members.getMe, null)).data;
+if (!me) return Astro.redirect("/insider/auth/signin");
 
 const availableMembers = (
   await Astro.callAction(actions.members.getAll, null)
-).data?.filter((m) => m.id !== Astro.locals.user.id);
+).data?.filter((m) => m.id !== me.id);
 ---
 
 <Layout>
-  <form
-    class="mx-auto grid max-w-screen-xl gap-4 p-4"
-    method="POST"
-    action={actions.calls.create}
-  >
-    <div class="flex-1">
-      <CallForm client:load {availableMembers} />
-    </div>
-    <footer class="flex justify-between mx-auto w-full">
-      <a
-        href="/insider/dashboard"
-        class={buttonVariants({ variant: "outline" })}>Cancel</a
-      >
-      <Button type="submit">Create Call</Button>
-    </footer>
-  </form>
+  <CallForm {me} client:only="svelte" {availableMembers} />
 </Layout>
