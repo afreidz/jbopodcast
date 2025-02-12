@@ -84,6 +84,7 @@
   import SplashImage from "lucide-svelte/icons/image";
   import { scrollShadowClasses } from "$/lib/classes";
   import { ScrollArea } from "$/components/ui/scroll-area";
+  import type { Snippet } from "svelte";
 
   type Props = {
     scenes?: Scenes[];
@@ -92,74 +93,86 @@
   let { scenes = $bindable([]) }: Props = $props();
 </script>
 
-{#snippet Spotlight()}
-  <div class="p-1 w-28 aspect-video">
+{#snippet empty()}&nbsp;{/snippet}
+{#snippet emptySidebar()}
+  <i class="border rounded-sm size-3">&nbsp;</i>
+  <i class="border rounded-sm size-3">&nbsp;</i>
+  <i class="border rounded-sm size-3">&nbsp;</i>
+{/snippet}
+
+{#snippet Spotlight(A: Snippet = empty)}
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input"
       style="grid-template-areas: 'A';"
     >
-      <i class="bg-background">&nbsp;</i>
+      <i class="bg-background">{@render A()}</i>
     </div>
   </div>
 {/snippet}
 
-{#snippet TwoUp()}
-  <div class="p-1 w-28 aspect-video">
+{#snippet TwoUp(A: Snippet = empty, B: Snippet = empty)}
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input grid-cols-2"
       style="grid-template-areas: 'A B';"
     >
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
+      <i class="bg-background">{@render A()}</i>
+      <i class="bg-background">{@render B()}</i>
     </div>
   </div>
 {/snippet}
 
-{#snippet ThreeUp()}
-  <div class="p-1 w-28 aspect-video">
+{#snippet ThreeUp(A: Snippet = empty, B: Snippet = empty, C: Snippet = empty)}
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input grid-cols-3"
       style="grid-template-areas: 'A B C';"
     >
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
+      <i class="bg-background">{@render A()}</i>
+      <i class="bg-background">{@render B()}</i>
+      <i class="bg-background">{@render C()}</i>
     </div>
   </div>
 {/snippet}
 
-{#snippet FourUp()}
-  <div class="p-1 w-28 aspect-video">
+{#snippet FourUp(
+  A: Snippet = empty,
+  B: Snippet = empty,
+  C: Snippet = empty,
+  D: Snippet = empty
+)}
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input grid-cols-2 grid-rows-2"
       style="grid-template-areas: 'A B' 'C D';"
     >
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
-      <i class="bg-background">&nbsp;</i>
+      <i class="bg-background">{@render A()}</i>
+      <i class="bg-background">{@render B()}</i>
+      <i class="bg-background">{@render C()}</i>
+      <i class="bg-background">{@render D()}</i>
     </div>
   </div>
 {/snippet}
 
-{#snippet Pull()}
-  <div class="p-1 w-28 aspect-video">
+{#snippet Pull(A: Snippet = empty, B: Snippet = emptySidebar)}
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input grid-cols-4"
       style="grid-template-areas: 'A A A B';"
     >
-      <i class="bg-background" style="grid-area: A;">&nbsp;</i>
-      <div class="bg-background p-1 flex flex-col gap-1 items-center">
-        <i class="border rounded-sm size-3">&nbsp;</i>
-        <i class="border rounded-sm size-3">&nbsp;</i>
-        <i class="border rounded-sm size-3">&nbsp;</i>
+      <i class="bg-background" style="grid-area: A;">{@render A()}</i>
+      <div
+        class="bg-background p-1 flex flex-col gap-1 items-center justify-evenly"
+      >
+        {@render B()}
       </div>
     </div>
   </div>
 {/snippet}
 
 {#snippet Countdown()}
-  <div class="p-1 w-28 aspect-video">
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input"
       style="grid-template-areas: 'A';"
@@ -173,7 +186,7 @@
 {/snippet}
 
 {#snippet Splash()}
-  <div class="p-1 w-28 aspect-video">
+  <div class="p-1 aspect-video h-full">
     <div
       class="size-full grid border rounded-md overflow-clip gap-px bg-input"
       style="grid-template-areas: 'A';"
@@ -189,46 +202,46 @@
 
 <div class="rounded-md border flex">
   <ScrollArea
-    class="border-r p-4 flex-1 flex flex-col h-[400px] {scrollShadowClasses}"
+    class="border-r p-4 flex-1 flex flex-col h-96 {scrollShadowClasses}"
   >
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render Spotlight()}
       <strong>Spotlight</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render TwoUp()}
       <strong>Two Up</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render ThreeUp()}
       <strong>Three Up</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render FourUp()}
       <strong>Four Up</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render Pull()}
       <strong>Pull One</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render Countdown()}
       <strong>Countdown</strong>
     </button>
     <button
-      class="flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
+      class="h-20 flex gap-6 items-center hover:bg-input ring-input w-full p-1 rounded-md overflow-clip"
     >
       {@render Splash()}
       <strong>Splash Screen</strong>
