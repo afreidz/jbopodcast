@@ -7,6 +7,7 @@
 
   type Props = {
     class?: string;
+    style?: string;
     camera?: string;
     microphone?: string;
     stream?: MediaStream;
@@ -15,6 +16,7 @@
 
   let {
     me,
+    style = "",
     class: classList = "",
     stream = $bindable(undefined),
     camera = $bindable(undefined),
@@ -27,8 +29,6 @@
   let microphones: MediaDeviceInfo[] = $state([]);
   let video: HTMLVideoElement | null = $state(null);
   let permission: boolean = $state(!!localStorage.getItem("permission"));
-
-  $inspect(me);
 
   onMount(async () => {
     if (!permission) {
@@ -81,7 +81,7 @@
   }}
 />
 
-<div class="p-10 flex items-center justify-center {classList}">
+<div class="p-10 flex items-center justify-center {classList}" {style}>
   {#if !stream && (!microphone || !camera)}
     <Card.Root>
       <Card.Header>

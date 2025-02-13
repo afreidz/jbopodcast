@@ -10,15 +10,24 @@
   type Props = {
     peer: Member;
     class?: string;
+    style?: string;
     myStream: MediaStream;
     me: App.Locals["user"];
     call: CallWithConnections;
   };
 
+  let {
+    me,
+    peer,
+    call,
+    myStream,
+    style = "",
+    class: classList = "",
+  }: Props = $props();
+
   let loading = $state(false);
   let video: HTMLVideoElement | null = $state(null);
   let connection: PeerConnection | null = $state(null);
-  let { me, peer, call, myStream, class: classList = "" }: Props = $props();
 
   $effect(() => {
     if (video && connection?.stream) {
@@ -48,7 +57,7 @@
 
 <svelte:window onbeforeunload={async () => await cleanup()} />
 
-<div class="p-10 flex items-center justify-center {classList}">
+<div class="p-10 flex items-center justify-center {classList}" {style}>
   {#if loading}
     <div class="size-full">
       <Skeleton class="size-12 rounded-full" />
