@@ -2,7 +2,7 @@
 export const prerender = false;
 import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
-import Call from "../_components/callJoin.svelte";
+import Call from "../_components/call.svelte";
 
 if (!Astro.params.id) return Astro.redirect("/404");
 
@@ -24,6 +24,6 @@ if (
   return Astro.redirect("/401");
 ---
 
-<Layout class="flex-1">
+<Layout class="flex-1 grid grid-cols-[auto,1920px,auto]">
   <Call client:only="svelte" {call} {me} />
 </Layout>

@@ -3,8 +3,10 @@ import { actions } from "astro:actions";
 import type { Database } from "$/lib/types/supabase";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
-export const IDEAL_BITRATE = 96000;
-export const MIN_BITRATE = 41000;
+export const MIN_VIDEO_BITRATE = 2000;
+export const MAX_VIDEO_BITRATE = 10000;
+export const START_VIDEO_BITRATE = 6000;
+// export const
 
 type Connection = Database["public"]["Tables"]["connection"]["Row"];
 
@@ -130,7 +132,9 @@ export default class ConnectionManager {
         if (/^a=fmtp:\\d*/.test(str)) {
           items[i] =
             str +
-            `;x-google-max-bitrate=${IDEAL_BITRATE};x-google-min-bitrate=${MIN_BITRATE}`;
+            `;x-google-max-bitrate=${MAX_VIDEO_BITRATE};x-google-min-bitrate=${MIN_VIDEO_BITRATE};`;
+        } else if (/^a=mid:(1|video)/.test(str)) {
+          items[i] += `\r\nb=AS:${MAX_VIDEO_BITRATE}`;
         }
       });
       finalAnswer = new RTCSessionDescription({

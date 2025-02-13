@@ -3,6 +3,7 @@
   import { type Member } from "$/actions/members";
   import LocalFeed from "$/components/local.svelte";
   import RemoteFeed from "$/components/remote.svelte";
+  import HostTools from "$/components/hostTools.svelte";
   import type { CallWithConnections } from "$/actions/calls";
 
   type Props = {
@@ -11,8 +12,14 @@
   };
 
   let { call, me }: Props = $props();
+  let stage: HTMLElement | undefined = $state(undefined);
   let localStream: MediaStream | undefined = $state(undefined);
   let activeScene = $state(call.scenes.at(-1) ?? call.scenes[0]);
+  let stageBox = $derived(
+    !!stage ? (stage as HTMLElement).getClientRects()[0] : undefined
+  );
+
+  $inspect(stage ? (stage as HTMLElement).getClientRects() : null);
 
   let localCamera: string | undefined = $state(
     localStorage.getItem("camera") ?? undefined
@@ -28,6 +35,7 @@
   });
 
   $effect(() => {
+    console.log("LOCAL", localCamera, localMicrophone);
     navigator.mediaDevices
       .getUserMedia({
         audio: {
@@ -61,9 +69,12 @@
   {/if}
 {/snippet}
 
+<nav></nav>
+
 <main
+  bind:this={stage}
   style={SceneGrids[activeScene.type]}
-  class="flex-1 grid w-[1920px] aspect-video"
+  class="flex-none grid w-[1920px] aspect-video"
 >
   {#if localStream}
     {@render Feed(activeScene.A, "A")}
@@ -72,3 +83,14 @@
     {@render Feed(activeScene.D, "D")}
   {/if}
 </main>
+
+<aside class="flex justify-end">
+  {#if me.id === call.hostId && localStream}
+    <HostTools
+      {stageBox}
+      {localStream}
+      scenes={call.scenes}
+      setScene={(s) => (activeScene = s)}
+    />
+  {/if}
+</aside>

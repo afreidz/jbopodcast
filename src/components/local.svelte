@@ -59,8 +59,8 @@
           },
           video: {
             deviceId: camera,
-            frameRate: { ideal: 60, min: 30 },
-            width: { ideal: 2160, min: 1280 },
+            frameRate: { ideal: 30, min: 20 },
+            width: { ideal: 2160, min: 1920 },
           },
         })
         .then((device) => {
