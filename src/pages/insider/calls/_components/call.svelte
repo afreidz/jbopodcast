@@ -7,6 +7,8 @@
   import type { CallWithConnections } from "$/actions/calls";
   import { cache as connections } from "$/lib/connection.svelte";
 
+  const qs = new URLSearchParams(window.location.search);
+
   type Props = {
     me: App.Locals["user"];
     call: CallWithConnections;
@@ -76,7 +78,7 @@
 <main
   bind:this={stage}
   style={SceneGrids[activeScene.type]}
-  class:border-8={me.id === call.hostId}
+  class:border-8={qs.has("showFrame")}
   class="flex-none grid w-[1920px] aspect-video border-red-500 border-dashed"
 >
   {#if localStream}
