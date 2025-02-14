@@ -22,7 +22,7 @@ export default defineConfig({
         context: "client",
         access: "public",
       }),
-      PUBLIC_SB_PROJECT_ID: envField.string({
+      PUBLIC_SB_PROJECT_URL: envField.string({
         context: "client",
         access: "public",
       }),

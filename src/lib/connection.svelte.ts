@@ -123,6 +123,7 @@ export default class ConnectionManager extends EventTarget {
   }
 
   sendSceneChange(id: string) {
+    if (this.dc.readyState !== "open") return;
     this.dc.send(JSON.stringify({ event: "change-scene", id }));
   }
 

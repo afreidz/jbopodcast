@@ -4,8 +4,10 @@
   import Avatar from "$/components/avatar.svelte";
   import type { Member } from "$/actions/members";
   import { Skeleton } from "$/components/ui/skeleton";
-  import PeerConnection from "$/lib/connection.svelte";
   import type { CallWithConnections } from "$/actions/calls";
+  import PeerConnection, {
+    cache as connections,
+  } from "$/lib/connection.svelte";
 
   type Props = {
     peer: Member;
@@ -30,13 +32,16 @@
   let connection: PeerConnection | null = $state(null);
 
   $effect(() => {
+    console.log(video, connection?.stream);
     if (video && connection?.stream) {
       video.srcObject = connection.stream;
     }
   });
 
   onMount(async () => {
-    connection = new PeerConnection(peer.id, call.id, me.id, myStream);
+    connection =
+      connections.values().find((c) => c.peerId === peer.id) ??
+      new PeerConnection(peer.id, call.id, me.id, myStream);
 
     const existing = call.connections.find(
       (c) => c.fromId === peer.id && c.toId === me.id

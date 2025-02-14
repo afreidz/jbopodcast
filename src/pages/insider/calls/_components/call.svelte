@@ -59,15 +59,13 @@
 
   async function onSceneChange(s: Scene) {
     switching = true;
+    await new Promise((r) => setTimeout(r, 400));
     activeScene = s;
     connections.forEach((c) => {
       c.sendSceneChange(s.id);
     });
-    await new Promise((r) => setTimeout(r, 1000));
     switching = false;
   }
-
-  $inspect(localStream);
 </script>
 
 {#snippet Feed(peer: Member | null, area: "A" | "B" | "C" | "D")}

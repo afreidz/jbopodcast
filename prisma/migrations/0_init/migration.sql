@@ -20,15 +20,6 @@ CREATE TYPE "auth"."factor_type" AS ENUM ('totp', 'webauthn', 'phone');
 CREATE TYPE "auth"."one_time_token_type" AS ENUM ('confirmation_token', 'reauthentication_token', 'recovery_token', 'email_change_token_new', 'email_change_token_current', 'phone_change_token');
 
 -- CreateTable
-CREATE TABLE "public"."members" (
-    "id" UUID NOT NULL,
-    "name" TEXT,
-    "handle" TEXT,
-
-    CONSTRAINT "members_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "auth"."audit_log_entries" (
     "instance_id" UUID,
     "id" UUID NOT NULL,
@@ -369,9 +360,6 @@ CREATE INDEX "users_instance_id_idx" ON "auth"."users"("instance_id");
 
 -- CreateIndex
 CREATE INDEX "users_is_anonymous_idx" ON "auth"."users"("is_anonymous");
-
--- AddForeignKey
-ALTER TABLE "public"."members" ADD CONSTRAINT "members_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "auth"."identities" ADD CONSTRAINT "identities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

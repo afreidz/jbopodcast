@@ -9,17 +9,19 @@ export const GET: APIRoute = async ({ url, redirect }) => {
     return new Response("Unable to confirm invite", { status: 400 });
   }
 
-  const {
-    error,
-    data: { session },
-  } = await client.auth.verifyOtp({ token_hash, type: "invite" });
+  const { error, data } = await client.auth.verifyOtp({
+    token_hash,
+    type: "email",
+  });
 
-  if (error || !session) {
+  console.log(client);
+
+  if (error || !data.session) {
     console.log(error);
     return new Response("Unable to confirm invite", { status: 400 });
   }
 
   return redirect(
-    `/insider/auth/register?refresh_token=${session?.refresh_token}&email=${session?.user.email}`
+    `/insider/auth/register?refresh_token=${data.session.refresh_token}&email=${data.session.user.email}`
   );
 };
