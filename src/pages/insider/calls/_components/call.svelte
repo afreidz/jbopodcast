@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SceneGrids } from "$/lib/classes";
+  import type { Scene } from "$/actions/scenes";
   import { type Member } from "$/actions/members";
   import LocalFeed from "$/components/local.svelte";
   import RemoteFeed from "$/components/remote.svelte";
@@ -14,6 +15,7 @@
     call: CallWithConnections;
   };
 
+  let switching = $state(false);
   let { call, me }: Props = $props();
   let activeScene = $state(call.scenes[0]);
   let stage: HTMLElement | undefined = $state(undefined);
@@ -55,6 +57,16 @@
       });
   });
 
+  async function onSceneChange(s: Scene) {
+    switching = true;
+    activeScene = s;
+    connections.forEach((c) => {
+      c.sendSceneChange(s.id);
+    });
+    await new Promise((r) => setTimeout(r, 1000));
+    switching = false;
+  }
+
   $inspect(localStream);
 </script>
 
@@ -77,9 +89,10 @@
 
 <main
   bind:this={stage}
+  class:opacity-0={switching}
   style={SceneGrids[activeScene.type]}
   class:border-8={qs.has("showFrame")}
-  class="flex-none grid w-[1920px] aspect-video border-red-500 border-dashed"
+  class="flex-none grid w-[1920px] aspect-video border-red-500 border-dashed transition-opacity duration-300"
 >
   {#if localStream}
     {@render Feed(activeScene.A, "A")}
@@ -91,16 +104,6 @@
 
 <aside class="flex justify-end">
   {#if me.id === call.hostId && localStream}
-    <HostTools
-      {stageBox}
-      {localStream}
-      scenes={call.scenes}
-      setScene={(s) => {
-        connections.forEach((c) => {
-          c.sendSceneChange(s.id);
-        });
-        activeScene = s;
-      }}
-    />
+    <HostTools {stageBox} {localStream} {onSceneChange} scenes={call.scenes} />
   {/if}
 </aside>

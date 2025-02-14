@@ -21,7 +21,7 @@
     scenes: Scene[];
     stageBox?: DOMRect;
     localStream: MediaStream;
-    setScene?: (s: Scene) => void;
+    onSceneChange?: (s: Scene) => void;
   };
 
   let streaming = $state(false);
@@ -29,7 +29,7 @@
     scenes,
     stageBox,
     localStream,
-    setScene = console.log,
+    onSceneChange = console.log,
   }: Props = $props();
 
   async function handleStartStream() {
@@ -76,7 +76,7 @@
         {@render SceneMember(scene.D)}
       {/snippet}
       <button
-        onclick={() => setScene(scene)}
+        onclick={() => onSceneChange(scene)}
         class="flex w-full items-center gap-4 hover:bg-white/5 rounded-md"
       >
         <div class="h-20">
