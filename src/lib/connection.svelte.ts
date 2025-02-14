@@ -6,15 +6,16 @@ import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 export const MIN_VIDEO_BITRATE = 2000;
 export const MAX_VIDEO_BITRATE = 10000;
 export const START_VIDEO_BITRATE = 6000;
-// export const
+export const cache = new Set<ConnectionManager>();
 
 type Connection = Database["public"]["Tables"]["connection"]["Row"];
 
-export default class ConnectionManager {
+export default class ConnectionManager extends EventTarget {
   public stream: MediaStream | null = $state(null);
   protected ice: RTCIceCandidate[] = [];
   protected rtc: RTCPeerConnection;
   protected myStream: MediaStream;
+  protected dc: RTCDataChannel;
   public callId: string;
   public peerId: string;
   public myId: string;
@@ -25,6 +26,7 @@ export default class ConnectionManager {
     myId: string,
     myStream: MediaStream
   ) {
+    super();
     this.rtc = new RTCPeerConnection();
     this.myStream = myStream;
     this.peerId = peerId;
@@ -45,6 +47,12 @@ export default class ConnectionManager {
         this.stream = streams[0];
       }
     });
+
+    this.dc = this.rtc.createDataChannel(this.callId, { ordered: true });
+
+    this.dc.onmessage = (event) => {
+      console.log("Got Data Channel Message:", event.data);
+    };
 
     supabase
       .channel("schema-db-changes")
@@ -88,6 +96,8 @@ export default class ConnectionManager {
         }
       )
       .subscribe();
+
+    cache.add(this);
   }
 
   async createOffer() {
@@ -110,6 +120,10 @@ export default class ConnectionManager {
       to: this.peerId,
       call: this.callId,
     });
+  }
+
+  sendSceneChange(id: string) {
+    this.dc.send(JSON.stringify({ event: "change-scene", id }));
   }
 
   async answerOffer(connection: Connection) {

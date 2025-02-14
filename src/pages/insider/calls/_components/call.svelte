@@ -5,6 +5,7 @@
   import RemoteFeed from "$/components/remote.svelte";
   import HostTools from "$/components/hostTools.svelte";
   import type { CallWithConnections } from "$/actions/calls";
+  import { cache as connections } from "$/lib/connection.svelte";
 
   type Props = {
     me: App.Locals["user"];
@@ -12,9 +13,9 @@
   };
 
   let { call, me }: Props = $props();
+  let activeScene = $state(call.scenes[0]);
   let stage: HTMLElement | undefined = $state(undefined);
   let localStream: MediaStream | undefined = $state(undefined);
-  let activeScene = $state(call.scenes.at(-1) ?? call.scenes[0]);
   let stageBox = $derived(
     !!stage ? (stage as HTMLElement).getClientRects()[0] : undefined
   );
@@ -35,7 +36,6 @@
   });
 
   $effect(() => {
-    console.log("LOCAL", localCamera, localMicrophone);
     navigator.mediaDevices
       .getUserMedia({
         audio: {
@@ -52,6 +52,8 @@
         localStream = device;
       });
   });
+
+  $inspect(localStream);
 </script>
 
 {#snippet Feed(peer: Member | null, area: "A" | "B" | "C" | "D")}
@@ -74,7 +76,8 @@
 <main
   bind:this={stage}
   style={SceneGrids[activeScene.type]}
-  class="flex-none grid w-[1920px] aspect-video"
+  class:border-8={me.id === call.hostId}
+  class="flex-none grid w-[1920px] aspect-video border-red-500 border-dashed"
 >
   {#if localStream}
     {@render Feed(activeScene.A, "A")}
@@ -90,7 +93,12 @@
       {stageBox}
       {localStream}
       scenes={call.scenes}
-      setScene={(s) => (activeScene = s)}
+      setScene={(s) => {
+        connections.forEach((c) => {
+          c.sendSceneChange(s.id);
+        });
+        activeScene = s;
+      }}
     />
   {/if}
 </aside>

@@ -1,24 +1,34 @@
 <script lang="ts">
   import { Input } from "$/components/ui/input";
-  import { Label } from "$/components/ui/label";
   import { Button } from "$/components/ui/button";
 
   type Props = {
     email: string;
+    name?: string;
     token?: string;
+    handle?: string;
+    showMemberFields?: boolean;
   };
 
+  let {
+    token,
+    email = $bindable(),
+    showMemberFields = false,
+  }: Props = $props();
+
+  let name: string = $state("");
+  let handle: string = $state("");
   let password: string = $state("");
-  let { email = $bindable(), token }: Props = $props();
 </script>
 
 {#if token}<input type="hidden" name="refresh_token" value={token} />{/if}
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-3">
   <Input
     type="email"
     name="email"
     readonly={!!email}
     bind:value={email}
+    autocomplete="email"
     placeholder="name@example.com"
   />
   <Input
@@ -28,5 +38,21 @@
     placeholder="password"
     autocomplete="current-password"
   />
-  <Button type="submit">{token ? "Set password" : "Sign-In"}</Button>
+  {#if showMemberFields}
+    <Input
+      name="name"
+      type="text"
+      bind:value={name}
+      placeholder="full name"
+      autocomplete="family-name"
+    />
+    <Input
+      type="text"
+      name="handle"
+      bind:value={handle}
+      placeholder="handle"
+      autocomplete="username"
+    />
+  {/if}
+  <Button type="submit">{showMemberFields ? "Update" : "Sign-In"}</Button>
 </div>

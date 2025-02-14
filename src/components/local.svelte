@@ -4,6 +4,9 @@
   import { Badge } from "$/components/ui/badge";
   import * as Select from "$/components/ui/select";
   import { Skeleton } from "$/components/ui/skeleton";
+  import ConnectedIcon from "lucide-svelte/icons/dot";
+  import ChangeIcon from "lucide-svelte/icons/settings";
+  import Button from "./ui/button/button.svelte";
 
   type Props = {
     class?: string;
@@ -24,6 +27,7 @@
   }: Props = $props();
 
   let loading = $state(true);
+  let changing = $state(false);
   let devices: MediaDeviceInfo[] = $state([]);
   let cameras: MediaDeviceInfo[] = $state([]);
   let microphones: MediaDeviceInfo[] = $state([]);
@@ -40,17 +44,14 @@
       stream.getTracks().forEach((t) => t.stop());
     }
 
-    if (!stream) {
-      devices = await navigator.mediaDevices.enumerateDevices();
-      cameras = devices.filter((d) => d.kind === "videoinput");
-      microphones = devices.filter((d) => d.kind === "audioinput");
-    } else {
-      loading = false;
-    }
+    devices = await navigator.mediaDevices.enumerateDevices();
+    cameras = devices.filter((d) => d.kind === "videoinput");
+    microphones = devices.filter((d) => d.kind === "audioinput");
+    if (stream) loading = false;
   });
 
   $effect(() => {
-    if (!stream && camera && microphone) {
+    if (camera && microphone) {
       navigator.mediaDevices
         .getUserMedia({
           audio: {
@@ -66,6 +67,7 @@
         .then((device) => {
           stream = device;
           loading = false;
+          changing = false;
         });
     }
   });
@@ -82,7 +84,7 @@
 />
 
 <div class="p-10 flex items-center justify-center {classList}" {style}>
-  {#if !stream && (!microphone || !camera)}
+  {#if (!stream && (!microphone || !camera)) || changing}
     <Card.Root>
       <Card.Header>
         <Card.Title>Please select your devices</Card.Title>
@@ -90,38 +92,51 @@
           >Choose the camera and microphone you would like to use for this call</Card.Description
         >
       </Card.Header>
-      <Card.Content class="flex flex-col gap-2">
-        {#if microphones}
-          <Select.Root type="single" name="microphone" bind:value={microphone}>
-            <Select.Trigger>
-              {devices.find((d) => d.deviceId === microphone)?.label ??
-                "Select a microphone"}
-            </Select.Trigger>
-            <Select.Content>
-              {#each microphones as microphone}
-                <Select.Item
-                  value={microphone.deviceId}
-                  label={microphone.label}>{microphone.label}</Select.Item
-                >
-              {/each}
-            </Select.Content>
-          </Select.Root>
-        {/if}
-        {#if cameras}
-          <Select.Root type="single" name="camera" bind:value={camera}>
-            <Select.Trigger>
-              {devices.find((d) => d.deviceId === camera)?.label ??
-                "Select a camera"}
-            </Select.Trigger>
-            <Select.Content>
-              {#each cameras as camera}
-                <Select.Item value={camera.deviceId} label={camera.label}
-                  >{camera.label}</Select.Item
-                >
-              {/each}
-            </Select.Content>
-          </Select.Root>
-        {/if}
+      <Card.Content>
+        <form onsubmit={() => (changing = false)} class="flex flex-col gap-2">
+          {#if microphones}
+            <Select.Root
+              type="single"
+              name="microphone"
+              required
+              bind:value={microphone}
+            >
+              <Select.Trigger>
+                {devices.find((d) => d.deviceId === microphone)?.label ??
+                  "Select a microphone"}
+              </Select.Trigger>
+              <Select.Content>
+                {#each microphones as microphone}
+                  <Select.Item
+                    value={microphone.deviceId}
+                    label={microphone.label}>{microphone.label}</Select.Item
+                  >
+                {/each}
+              </Select.Content>
+            </Select.Root>
+          {/if}
+          {#if cameras}
+            <Select.Root
+              type="single"
+              required
+              name="camera"
+              bind:value={camera}
+            >
+              <Select.Trigger>
+                {devices.find((d) => d.deviceId === camera)?.label ??
+                  "Select a camera"}
+              </Select.Trigger>
+              <Select.Content>
+                {#each cameras as camera}
+                  <Select.Item value={camera.deviceId} label={camera.label}
+                    >{camera.label}</Select.Item
+                  >
+                {/each}
+              </Select.Content>
+            </Select.Root>
+          {/if}
+          <Button type="submit">Change</Button>
+        </form>
       </Card.Content>
     </Card.Root>
   {:else if loading}
@@ -139,9 +154,16 @@
         bind:this={video}
         class="aspect-video h-full object-cover"
       ></video>
-      <Badge class="absolute bottom-5 right-5"
-        >{me.handle || me.name || me.email}</Badge
+      <button
+        onclick={() => (changing = true)}
+        class="group absolute bottom-5 right-5"
       >
+        <Badge class="flex items-center gap-1">
+          <ChangeIcon class="hidden group-hover:inline-block size-2" />
+          <i class="size-2 rounded-full bg-emerald-500 group-hover:hidden"></i>
+          <span>{me.handle || me.name || me.email}</span>
+        </Badge>
+      </button>
     </div>
   {/if}
 </div>

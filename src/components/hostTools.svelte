@@ -26,9 +26,9 @@
 
   let streaming = $state(false);
   let {
+    scenes,
     stageBox,
     localStream,
-    scenes,
     setScene = console.log,
   }: Props = $props();
 
