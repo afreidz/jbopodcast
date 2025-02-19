@@ -8,7 +8,7 @@
 	},
 	"aliases": {
 		"components": "$/components",
-		"utils": "$/utils",
+		"utils": "$/lib/shadcn",
 		"ui": "$/components/ui",
 		"hooks": "$/hooks"
 	},

@@ -1,0 +1,14 @@
+---
+import Base from "./Layout.astro";
+let { class: classList } = Astro.props;
+---
+
+<Base class={classList}>
+  <slot />
+</Base>
+
+<script>
+  import client from "$/lib/pocketbase";
+  import { navigate } from "astro:transitions/client";
+  if (!client.authStore.isValid) navigate("/insider/signin");
+</script>

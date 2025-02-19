@@ -7,12 +7,14 @@
     member: Member;
     class?: string;
     style?: string;
+    muted?: boolean;
     stream?: MediaStream | null;
   };
 
   let {
     member,
     style = "",
+    muted = false,
     stream = null,
     class: classList = "",
   }: Props = $props();
@@ -27,8 +29,8 @@
   <div
     class="relative rounded-2xl h-full w-full overflow-hidden border-accent border-8 flex items-center justify-center"
   >
-    <!-- svelte-ignore a11y_media_has_caption -->
     <video
+      {muted}
       autoplay
       playsinline
       bind:this={video}

@@ -3,6 +3,7 @@
   import { SceneGrids } from "$/lib/classes";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
+  import Sidebar from "$/components/shared/sidebar.svelte";
   import CallState from "./state/callConnect.state.svelte";
   import Devices from "$/components/shared/devices.svelte";
   import HostTools from "$/components/calls/hostTools.svelte";
@@ -56,6 +57,7 @@
 {#snippet Feed(peer: Member | null | undefined, area: "A" | "B" | "C" | "D")}
   {#if peer?.id === client.authStore.record!.id}
     <VideoFeed
+      muted
       stream={localStream}
       style="grid-area: {area};"
       member={client.authStore.record! as unknown as Member}
@@ -72,7 +74,12 @@
   <div class="flex flex-col justify-evenly" style="grid-area: B">
     {#each peers as peer}
       {#if peer.id === client.authStore.record!.id}
-        <VideoFeed member={peer} stream={localStream} class="aspect-square" />
+        <VideoFeed
+          muted
+          member={peer}
+          stream={localStream}
+          class="aspect-square"
+        />
       {:else if peer}
         {@const p = callState.remoteStreams.find((s) => s.id === peer.id)}
         {#if p}
@@ -83,33 +90,32 @@
   </div>
 {/snippet}
 
-<nav></nav>
-
-{#if callState.activeScene && localStream}
-  <main
-    bind:this={stage}
-    class:opacity-0={switching}
-    class:border-8={qs.has("showFrame")}
-    style={SceneGrids[callState.activeScene.type]}
-    class="flex-none grid w-[1920px] h-[1080px] overflow-clip border-red-500 border-dashed transition-opacity duration-300 px-8"
-  >
-    {#if callState.activeScene.type === "pull"}
-      {@const others = callState.callMembers.filter(
-        (m) => m.id !== callState.activeScene?.A
-      )}
-      {@render Feed(callState.activeScene?.expand?.A, "A")}
-      {@render Overflow(others)}
-    {:else}
-      {@render Feed(callState.activeScene?.expand?.A, "A")}
-      {@render Feed(callState.activeScene?.expand?.B, "B")}
-      {@render Feed(callState.activeScene?.expand?.C, "C")}
-      {@render Feed(callState.activeScene?.expand?.D, "D")}
-    {/if}
-  </main>
-{/if}
-
-<aside class="flex justify-end">
-  <HostTools {onSceneChange} scenes={callState.scenes} />
-</aside>
+<Sidebar collapsible="none" class="size-full flex items-center justify-center">
+  {#snippet sidebar()}
+    <HostTools {onSceneChange} scenes={callState.scenes} class="h-svh" />
+  {/snippet}
+  {#if callState.activeScene && localStream}
+    <main
+      bind:this={stage}
+      class:opacity-0={switching}
+      class:border-8={qs.has("showFrame")}
+      style={SceneGrids[callState.activeScene.type]}
+      class="flex-none grid w-[1920px] h-[1080px] overflow-clip border-red-500 border-dashed transition-opacity duration-300 px-8"
+    >
+      {#if callState.activeScene.type === "pull"}
+        {@const others = callState.callMembers.filter(
+          (m) => m.id !== callState.activeScene?.A
+        )}
+        {@render Feed(callState.activeScene?.expand?.A, "A")}
+        {@render Overflow(others)}
+      {:else}
+        {@render Feed(callState.activeScene?.expand?.A, "A")}
+        {@render Feed(callState.activeScene?.expand?.B, "B")}
+        {@render Feed(callState.activeScene?.expand?.C, "C")}
+        {@render Feed(callState.activeScene?.expand?.D, "D")}
+      {/if}
+    </main>
+  {/if}
+</Sidebar>
 
 <Devices bind:stream={localStream} />

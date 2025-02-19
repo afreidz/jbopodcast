@@ -1,11 +1,11 @@
 ---
 export const prerender = false;
-import Layout from "$/layouts/Layout.astro";
+import Layout from "$/layouts/Insider.astro";
 import Call from "$/components/calls/join.svelte";
 
 if (!Astro.params.id) return Astro.redirect("/404");
 ---
 
-<Layout class="flex-1 grid grid-cols-[auto,1920px,auto]">
+<Layout>
   <Call client:only="svelte" call={Astro.params.id} />
 </Layout>

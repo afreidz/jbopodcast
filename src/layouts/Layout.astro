@@ -17,7 +17,7 @@ let { class: classList } = Astro.props;
   </head>
   <body class={classList}>
     <slot />
-    <ModeWatcher client:load />
+    <ModeWatcher client:only="svelte" />
     <Toaster
       client:only="svelte"
       toastOptions={{

@@ -74,7 +74,7 @@ export const getUpcoming = defineAction({
 
     const response = await client.collection("calls").getList<Call>(0, 5, {
       expand,
-      filter,
+      // filter,
     });
 
     return response.items;

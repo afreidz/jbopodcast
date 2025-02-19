@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Avatar as AvatarPrimitive } from "bits-ui";
-	import { cn } from "$/utils.js";
+	import { cn } from "$/lib/shadcn.js";
 
 	let {
 		ref = $bindable(null),

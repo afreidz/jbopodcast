@@ -39,7 +39,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from "$/utils.js";
+	import { cn } from "$/lib/shadcn.js";
 
 	let {
 		class: className,

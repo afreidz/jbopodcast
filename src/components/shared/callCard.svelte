@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Call } from "$/actions/calls";
+  import { type Call } from "$/actions/calls";
   import * as Card from "$/components/ui/card";
   import { Skeleton } from "$/components/ui/skeleton";
   import Avatar from "$/components/shared/avatar.svelte";
@@ -50,20 +50,15 @@
       {/if}
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
-      <div dir="rtl" class="flex -space-x-2">
+      <div class="flex flex-row-reverse">
         {#if !call}
           <Skeleton class="size-6 rounded-full" />
         {:else if call.expand}
-          <Avatar
-            class="size-6 text-xs"
-            name={call.expand.host.name}
-            email={call.expand.host.email}
-          />
-          {#each call.expand.guests as guest}
+          {#each [call.expand.host, ...call.expand.guests] as guest}
             <Avatar
               name={guest.name}
-              class="size-6 text-xs"
               email={guest.email}
+              class="size-6 text-xs -mx-[3px]"
             />
           {/each}
         {/if}

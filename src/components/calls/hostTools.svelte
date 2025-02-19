@@ -16,11 +16,16 @@
   import { ScrollArea } from "$/components/ui/scroll-area";
 
   type Props = {
+    class?: string;
     scenes: Scene[];
     onSceneChange?: (s: Scene) => void;
   };
 
-  let { scenes, onSceneChange = console.log }: Props = $props();
+  let {
+    scenes,
+    class: classList = "",
+    onSceneChange = console.log,
+  }: Props = $props();
 </script>
 
 {#snippet SceneMember(member: Member | null)}
@@ -37,8 +42,8 @@
   </div>
 {/snippet}
 
-<div class="flex-1 m-2 rounded-2xl bg-muted max-w-xs p-4 flex flex-col gap-2">
-  <strong class="mt-8">Scene Switch</strong>
+<div class="p-4 flex flex-col gap-2 {classList}">
+  <strong>Scene Switch</strong>
   <ScrollArea class="w-full flex-1">
     {#each scenes as scene}
       {#snippet AMember()}
