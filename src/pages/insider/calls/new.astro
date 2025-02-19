@@ -1,17 +1,9 @@
 ---
 export const prerender = false;
-import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
-import CallForm from "./_components/callForm.svelte";
-
-const me = (await Astro.callAction(actions.members.getMe, null)).data;
-if (!me) return Astro.redirect("/insider/auth/signin");
-
-const availableMembers = (
-  await Astro.callAction(actions.members.getAll, null)
-).data?.filter((m) => m.id !== me.id);
+import CallForm from "$/components/calls/callForm.svelte";
 ---
 
 <Layout>
-  <CallForm {me} client:only="svelte" {availableMembers} />
+  <CallForm client:only="svelte" />
 </Layout>

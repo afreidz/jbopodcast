@@ -1,4 +1,4 @@
-import type { CALL_SCENE } from "@prisma/client";
+import type { ScenesTypeOptions } from "@pocketbase/types";
 
 export const scrollShadowClasses = `
 relative
@@ -19,7 +19,7 @@ after:pointer-events-none
   .split("\n")
   .join(" ");
 
-export const SceneGrids: Record<CALL_SCENE, string> = {
+export const SceneGrids: Record<ScenesTypeOptions, string> = {
   spotlight: "grid-template-areas: 'A';",
   countdown: "grid-template-areas: 'A';",
   twoUp:

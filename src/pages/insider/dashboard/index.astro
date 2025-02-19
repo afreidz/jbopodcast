@@ -1,23 +1,9 @@
 ---
 export const prerender = false;
-import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
-import UpcomingCalls from "./_components/upcomingCalls.svelte";
-
-const queryDate = new Date();
-queryDate.setHours(0, 0, 0, 0);
-
-const ucResponse = await Astro.callAction(actions.calls.getUpcoming, queryDate);
-if (ucResponse.error) {
-  console.error(ucResponse.error);
-  return Astro.redirect("/400");
-}
-
-const upcomingCalls = ucResponse.data;
+import Dashboard from "$/components/dashboard/dashboard.svelte";
 ---
 
 <Layout class="justify-center items-center">
-  <section class="p-4 min-w-96 max-w-screen-sm">
-    <UpcomingCalls client:load calls={upcomingCalls} />
-  </section>
+  <Dashboard client:only="svelte" />
 </Layout>

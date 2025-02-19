@@ -15,9 +15,14 @@ export default defineConfig({
 
   env: {
     schema: {
-      SB_DB_SR_KEY: envField.string({ context: "server", access: "secret" }),
-      DATABASE_URL: envField.string({ context: "server", access: "secret" }),
-      DIRECT_URL: envField.string({ context: "server", access: "secret" }),
+      PUBLIC_PB_ENDPOINT: envField.string({
+        context: "client",
+        access: "public",
+      }),
+      PUBLIC_PULSE_API_KEY: envField.string({
+        context: "client",
+        access: "public",
+      }),
       PUBLIC_SB_ANON_KEY: envField.string({
         context: "client",
         access: "public",

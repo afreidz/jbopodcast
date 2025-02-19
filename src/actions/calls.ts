@@ -1,79 +1,101 @@
+import type {
+  UsersRecord,
+  CallsResponse,
+  ScenesResponse,
+} from "@pocketbase/types";
+
 import { z } from "astro:schema";
-import client from "$/lib/prisma";
-import { memberIncludes } from "./members";
 import { defineAction } from "astro:actions";
-import type { Prisma } from "@prisma/client";
-import { sceneIncludes, SceneCreateSchema } from "./scenes";
+import { ScenesTypeOptions } from "@pocketbase/types";
+import client, { queryBuilder, query } from "$/lib/pocketbase";
+
+export const expand = "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D";
+
+export const SceneCreateSchema = z.object({
+  callId: z.string(),
+  A: z.string().optional(),
+  B: z.string().optional(),
+  C: z.string().optional(),
+  D: z.string().optional(),
+  label: z.string().min(1).max(25),
+  type: z.nativeEnum(ScenesTypeOptions),
+  splashURL: z.string().url().optional(),
+  countdownMS: z.coerce.number().optional(),
+});
+
+const CallScheama = z.object({
+  host: z.string(),
+  scheduled: z.coerce.date(),
+  guests: z.array(z.string()),
+  title: z.string().min(3).max(100),
+  scenes: z.array(SceneCreateSchema.omit({ callId: true })),
+});
 
 export const create = defineAction({
-  input: z.object({
-    hostId: z.string(),
-    scheduled: z.coerce.date(),
-    guests: z.array(z.string()),
-    title: z.string().min(3).max(100),
-    scenes: z.array(SceneCreateSchema.omit({ callId: true })),
-  }),
+  input: CallScheama,
   handler: async (input) => {
-    const { guests, scenes, ...data } = input;
-    return await client.calls.create({
-      data: {
-        ...data,
-        scenes: { createMany: { data: scenes } },
-        guests: { connect: guests.map((id) => ({ id })) },
-      },
-    });
+    const { scenes, ...data } = input;
+
+    if (scenes.length) {
+      const batch = client.createBatch();
+
+      scenes.forEach((scene) => {
+        batch.collection("scenes").create(scene);
+      });
+
+      try {
+        const sr = await batch.send();
+        return await client.collection("calls").create({
+          ...data,
+          scenes: sr.map((r) => r.body.id),
+        });
+      } catch (err) {
+        throw err;
+      }
+    } else {
+      return await client.collection("calls").create({ ...data });
+    }
   },
 });
 
-export const callIncludes = {
-  guests: {
-    include: memberIncludes,
-  },
-  host: {
-    include: memberIncludes,
-  },
-  scenes: { include: sceneIncludes },
-};
-
 export const getUpcoming = defineAction({
-  input: z.coerce.date(),
-  handler: async (date, context) => {
-    return await client.calls.findMany({
-      take: 5,
-      where: {
-        AND: [
-          {
-            OR: [
-              {
-                hostId: context.locals.user.id,
-              },
-              {
-                guests: { some: { id: context.locals.user.id } },
-              },
-            ],
-          },
-          {
-            completed: null,
-            scheduled: { gte: date },
-          },
-        ],
-      },
-      include: callIncludes,
+  input: z.object({
+    date: z.coerce.date(),
+    userId: z.string(),
+  }),
+  handler: async ({ date, userId }) => {
+    const filter = queryBuilder(
+      query.and(
+        query.gte("scheduled", date),
+        query.or(query.eq("host", userId), query.like("guests", userId))
+      )
+    );
+
+    const response = await client.collection("calls").getList<Call>(0, 5, {
+      expand,
+      filter,
     });
+
+    return response.items;
   },
 });
 
 export const getById = defineAction({
   input: z.string(),
   handler: async (id) => {
-    return await client.calls.findFirst({
-      where: { id },
-      include: { ...callIncludes, connections: true },
-    });
+    return await client.collection("calls").getOne<Call>(id, { expand });
   },
 });
 
-export type Call = Prisma.callsGetPayload<{ include: typeof callIncludes }>;
-export type CallWithConnections = Prisma.callsGetPayload<{
-  include: typeof callIncludes & { connections: true };
+export type Scene = ScenesResponse<{
+  A?: UsersRecord;
+  B?: UsersRecord;
+  C?: UsersRecord;
+  D?: UsersRecord;
+}>;
+
+export type Call = CallsResponse<{
+  scenes: Scene[];
+  host: UsersRecord;
+  guests: UsersRecord[];
 }>;

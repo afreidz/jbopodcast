@@ -1,29 +1,11 @@
 ---
 export const prerender = false;
-import { actions } from "astro:actions";
 import Layout from "$/layouts/Layout.astro";
-import Call from "../_components/call.svelte";
+import Call from "$/components/calls/join.svelte";
 
 if (!Astro.params.id) return Astro.redirect("/404");
-
-const response = await Astro.callAction(actions.calls.getById, Astro.params.id);
-const me = (await Astro.callAction(actions.members.getMe, null)).data;
-
-if (response.error) {
-  console.error(response.error);
-  return Astro.redirect("/400");
-}
-
-const call = response.data;
-if (!call) return Astro.redirect("/404");
-
-if (
-  !me?.id ||
-  (call.hostId !== me.id && !call.guests.some((g) => g.id === me.id))
-)
-  return Astro.redirect("/401");
 ---
 
 <Layout class="flex-1 grid grid-cols-[auto,1920px,auto]">
-  <Call client:only="svelte" {call} {me} />
+  <Call client:only="svelte" call={Astro.params.id} />
 </Layout>

@@ -1,43 +1,22 @@
-import client from "$/lib/supabase";
-import prismaClient from "$/lib/prisma";
-import { defineMiddleware } from "astro:middleware";
+import client from "$/lib/pocketbase";
+import { defineMiddleware } from "astro/middleware";
 
-const ALLOW_LIST = ["/insider/auth/signin", "/insider/auth/register"];
+const ALLOW_LIST = ["/insider/auth/signin"];
 
 export const onRequest = defineMiddleware(
-  async ({ locals, cookies, url, redirect }, next) => {
+  async ({ url, redirect, request }, next) => {
     if (
       !url.pathname.startsWith("/insider") ||
       ALLOW_LIST.some((i) => url.pathname.startsWith(i))
-    )
+    ){
       return next();
+    }
 
-    const access_token = cookies.get("sb-access-token")?.value;
-    const refresh_token = cookies.get("sb-refresh-token")?.value;
+    client.authStore.loadFromCookie(request.headers.get("cookie") ?? "");
 
-    if (!access_token || !refresh_token)
-      return redirect("/insider/auth/signin");
+    if (!client.authStore.isValid) return redirect("/insider/auth/signin", 303);
 
-    const { data } = await client.auth.setSession({
-      refresh_token,
-      access_token,
-    });
-
-    if (!data.user) return redirect("/insider/auth/signin");
-
-    const member = await prismaClient.members.findFirst({
-      where: { id: data.user.id },
-    });
-
-    if (!member) return redirect("/404");
-
-    locals.user = {
-      id: data.user.id,
-      role: member.role,
-      name: member.name,
-      handle: member.handle,
-      email: data.user.email!,
-    };
+    await client.collection("users").authRefresh();
 
     return next();
   }

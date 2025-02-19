@@ -3,13 +3,14 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
+    "astro": "astro",
     "build": "astro build",
+    "preapp": "npm run types",
     "preview": "astro preview",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate deploy",
-    "types": "source .env && npx supabase gen types typescript --project-id $PUBLIC_SB_PROJECT_ID > ./src/lib/types/supabase.ts",
-    "astro": "astro"
+    "dev": "conc \"npm:pb\" \"npm:app\"",
+    "pb": "./pocketbase/pocketbase serve",
+    "app": "wait-on tcp:8090 && astro dev",
+    "types": "pocketbase-typegen --db ./pocketbase/pb_data/data.db --out ./pocketbase/types.ts"
   },
   "engines": {
     "node": "^v22.12"
@@ -18,7 +19,6 @@
     "@astrojs/netlify": "^6.1.0",
     "@astrojs/svelte": "^7.0.4",
     "@astrojs/tailwind": "^6.0.0",
-    "@prisma/client": "^6.3.1",
     "@supabase/supabase-js": "^2.48.1",
     "astro": "^5.2.5",
     "svelte": "^5.19.9",
@@ -26,24 +26,27 @@
   },
   "devDependencies": {
     "@internationalized/date": "^3.7.0",
+    "@nedpals/pbf": "^1.3.2",
     "@types/gravatar": "^1.8.6",
     "@types/node": "^22.13.1",
     "autoprefixer": "^10.4.20",
     "bits-ui": "^1.0.0-next.97",
     "clsx": "^2.1.1",
+    "concurrently": "^9.1.2",
     "gravatar": "^1.8.2",
     "lucide-svelte": "^0.475.0",
     "mode-watcher": "^0.5.1",
+    "pocketbase": "^0.25.1",
+    "pocketbase-typegen": "^1.3.0",
     "postcss": "^8.5.2",
     "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^3.3.3",
-    "prisma": "^6.3.1",
-    "supabase": "^2.13.4",
     "svelte-sonner": "^0.3.28",
     "tailwind-merge": "^3.0.1",
     "tailwind-variants": "^0.3.1",
     "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "wait-on": "^8.0.2"
   }
 }

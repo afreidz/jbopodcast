@@ -1,21 +1,81 @@
-import supabase from "$/lib/supabase";
+import client from "$/lib/prisma";
 import { actions } from "astro:actions";
-import type { Database } from "$/lib/types/supabase";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { Connection } from "$/actions/connection";
 
 export const MIN_VIDEO_BITRATE = 2000;
 export const MAX_VIDEO_BITRATE = 10000;
 export const START_VIDEO_BITRATE = 6000;
 export const cache = new Set<ConnectionManager>();
 
-type Connection = Database["public"]["Tables"]["connection"]["Row"];
 
-export default class ConnectionManager extends EventTarget {
+const connectionStream = await client.connection.stream();
+
+for await (let event of connectionStream) {
+  console.log(event);
+}
+
+// supabase
+//   .channel("schema-db-changes")
+//   .on(
+//     "postgres_changes",
+//     {
+//       event: "*",
+//       schema: "public",
+//       table: "connection",
+//     },
+//     async (payload: RealtimePostgresChangesPayload<Connection>) => {
+//       if (payload.eventType === "UPDATE") {
+//         const connection = cache
+//           .values()
+//           .find(
+//             (c) =>
+//               c.callId === payload.new.callId &&
+//               payload.new.toId === c.peerId &&
+//               payload.new.fromId === c.myId
+//           );
+
+//         if (connection && payload.new.answer) {
+//           console.log("Peer answered", payload.new.answer);
+//           await connection.setAnswer(
+//             payload.new.answer as unknown as RTCSessionDescription
+//           );
+//         }
+//       } else if (payload.eventType === "DELETE") {
+//         const connection = cache
+//           .values()
+//           .find(
+//             (c) =>
+//               c.callId === payload.old.callId &&
+//               payload.old.toId === c.peerId &&
+//               payload.old.fromId === c.myId
+//           );
+//         if (connection) {
+//           console.log("Peer disconnected. Trying to reconnect.");
+//           await connection.createOffer();
+//         }
+//       } else if (payload.eventType === "INSERT") {
+//         const connection = cache
+//           .values()
+//           .find(
+//             (c) =>
+//               c.callId === payload.new.callId &&
+//               payload.new.fromId === c.peerId &&
+//               payload.new.toId === c.myId
+//           );
+//         if (connection) {
+//           console.log("Peer requested a connection");
+//           await connection.answerOffer(payload.new);
+//         }
+//       }
+//     }
+//   )
+//   .subscribe();
+
+export default class ConnectionManager {
   public stream: MediaStream | null = $state(null);
   protected ice: RTCIceCandidate[] = [];
   protected rtc: RTCPeerConnection;
   protected myStream: MediaStream;
-  protected dc: RTCDataChannel;
   public callId: string;
   public peerId: string;
   public myId: string;
@@ -26,76 +86,26 @@ export default class ConnectionManager extends EventTarget {
     myId: string,
     myStream: MediaStream
   ) {
-    super();
     this.rtc = new RTCPeerConnection();
     this.myStream = myStream;
     this.peerId = peerId;
     this.callId = callId;
     this.myId = myId;
 
-    this.myStream
-      .getTracks()
-      .forEach((t) => this.rtc.addTrack(t, this.myStream));
+    this.myStream.getTracks().forEach((t) => {
+      this.rtc.addTrack(t, this.myStream);
+    });
 
     this.rtc.addEventListener("icecandidate", (c) => {
       if (c.candidate) this.ice.push(c.candidate);
     });
 
-    this.rtc.addEventListener("track", ({ streams, track }) => {
+    this.rtc.addEventListener("track", ({ streams }) => {
       if (streams[0]) {
         console.log("Tracks received", streams[0]);
         this.stream = streams[0];
       }
     });
-
-    this.dc = this.rtc.createDataChannel(this.callId, { ordered: true });
-
-    this.dc.onmessage = (event) => {
-      console.log("Got Data Channel Message:", event.data);
-    };
-
-    supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "connection",
-        },
-        (payload: RealtimePostgresChangesPayload<Connection>) => {
-          if (
-            payload.eventType === "UPDATE" &&
-            payload.new.callId === this.callId &&
-            payload.new.toId === this.peerId &&
-            payload.new.fromId === this.myId &&
-            payload.new.answer
-          ) {
-            console.log("Peer answered", payload.new.answer);
-            this.rtc.setRemoteDescription(
-              payload.new.answer as unknown as RTCSessionDescription
-            );
-          } else if (
-            payload.eventType === "DELETE" &&
-            payload.old.callId === this.callId &&
-            payload.old.toId === this.peerId &&
-            payload.old.fromId === this.myId
-          ) {
-            console.log("Peer disconnected. Trying to reconnect.");
-            this.createOffer();
-          } else if (
-            payload.eventType === "INSERT" &&
-            payload.new.callId === this.callId &&
-            payload.new.fromId === this.peerId &&
-            payload.new.toId === this.myId &&
-            payload.new.offer
-          ) {
-            console.log("Peer requested a connection");
-            this.answerOffer(payload.new);
-          }
-        }
-      )
-      .subscribe();
 
     cache.add(this);
   }
@@ -122,11 +132,6 @@ export default class ConnectionManager extends EventTarget {
     });
   }
 
-  sendSceneChange(id: string) {
-    if (this.dc.readyState !== "open") return;
-    this.dc.send(JSON.stringify({ event: "change-scene", id }));
-  }
-
   async answerOffer(connection: Connection) {
     if (!connection.offer) throw new Error("No offer to answer");
 
@@ -140,29 +145,33 @@ export default class ConnectionManager extends EventTarget {
     const answer = await this.rtc.createAnswer();
     let finalAnswer = answer;
 
-    if (answer.sdp) {
-      const items = answer.sdp.split("\r\n");
+    // if (answer.sdp) {
+    //   const items = answer.sdp.split("\r\n");
 
-      items.forEach((str, i) => {
-        if (/^a=fmtp:\\d*/.test(str)) {
-          items[i] =
-            str +
-            `;x-google-max-bitrate=${MAX_VIDEO_BITRATE};x-google-min-bitrate=${MIN_VIDEO_BITRATE};`;
-        } else if (/^a=mid:(1|video)/.test(str)) {
-          items[i] += `\r\nb=AS:${MAX_VIDEO_BITRATE}`;
-        }
-      });
-      finalAnswer = new RTCSessionDescription({
-        type: "answer",
-        sdp: items.join("\r\n"),
-      });
-    }
+    //   items.forEach((str, i) => {
+    //     if (/^a=fmtp:\\d*/.test(str)) {
+    //       items[i] =
+    //         str +
+    //         `;x-google-max-bitrate=${MAX_VIDEO_BITRATE};x-google-min-bitrate=${MIN_VIDEO_BITRATE};`;
+    //     } else if (/^a=mid:(1|video)/.test(str)) {
+    //       items[i] += `\r\nb=AS:${MAX_VIDEO_BITRATE}`;
+    //     }
+    //   });
+    //   finalAnswer = new RTCSessionDescription({
+    //     type: "answer",
+    //     sdp: items.join("\r\n"),
+    //   });
+    // }
 
     await this.rtc.setLocalDescription(finalAnswer);
     await actions.connections.updateConnection({
       answer,
       id: connection.id,
     });
+  }
+
+  async setAnswer(a: RTCSessionDescription) {
+    await this.rtc.setRemoteDescription(a);
   }
 
   async disconnect() {

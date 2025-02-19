@@ -1,28 +1,22 @@
-import client from "$/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import { z } from "astro:schema";
+import client from "$/lib/pocketbase";
 import { defineAction } from "astro:actions";
-
-export const memberIncludes = {
-  user: { select: { email: true } },
-};
+import type { UsersRecord } from "@pocketbase/types";
 
 export const getAll = defineAction({
   handler: async () => {
-    return await client.members.findMany({
-      include: memberIncludes,
-    });
+    const resp = await client.collection("users").getFullList();
+    return resp;
   },
 });
 
-export const getMe = defineAction({
-  handler: async (_, context) => {
-    return await client.members.findFirst({
-      where: { id: context.locals.user.id },
-      include: memberIncludes,
-    });
-  },
-});
+export const getById = defineAction({
+  input: z.string(),
+  async handler(id) {
+    const resp = await client.collection("users").getOne(id);
+    return resp;
+  }
+})
 
-export type Member = Prisma.membersGetPayload<{
-  include: typeof memberIncludes;
-}>;
+export type Member = UsersRecord;
+export type CurrentUser = NonNullable<typeof client.authStore.record>;
