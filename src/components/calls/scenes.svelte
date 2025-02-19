@@ -15,7 +15,7 @@
   import { ScenesTypeOptions } from "@pocketbase/types";
   import Avatar from "$/components/shared/avatar.svelte";
   import { ScrollArea } from "$/components/ui/scroll-area";
-  import { type SceneCreateSchema } from "$/actions/scenes";
+  import type { SceneCreateSchema } from "$/actions/calls";
 
   type Props = {
     availableMembers: Member[];

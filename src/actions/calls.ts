@@ -22,6 +22,7 @@ export const SceneCreateSchema = z.object({
   splashURL: z.string().url().optional(),
   countdownMS: z.coerce.number().optional(),
 });
+export type SceneCreateSchema = z.infer<typeof SceneCreateSchema>;
 
 const CallScheama = z.object({
   host: z.string(),

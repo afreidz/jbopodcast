@@ -7,7 +7,7 @@
     ThreeUp,
     Spotlight,
     Countdown,
-  } from "$/components/calls/configure.svelte";
+  } from "$/components/calls/scenes.svelte";
 
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";

@@ -2,7 +2,7 @@
   import type { Call } from "$/actions/calls";
   import * as Card from "$/components/ui/card";
   import { buttonVariants } from "$/components/ui/button";
-  import CallCard from "$/components/calls/callCard.svelte";
+  import CallCard from "$/components/shared/callCard.svelte";
 
   type Props = {
     calls: Call[];

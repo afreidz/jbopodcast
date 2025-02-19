@@ -3,7 +3,7 @@
   import { SceneGrids } from "$/lib/classes";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
-  import CallState from "./callConnect.state.svelte";
+  import CallState from "./state/callConnect.state.svelte";
   import Devices from "$/components/shared/devices.svelte";
   import HostTools from "$/components/calls/hostTools.svelte";
   import VideoFeed from "$/components/calls/videoFeed.svelte";

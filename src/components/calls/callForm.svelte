@@ -12,8 +12,8 @@
   import * as ToggleGroup from "$/components/ui/toggle-group";
   import { parseAbsoluteToLocal } from "@internationalized/date";
   import { Button, buttonVariants } from "$/components/ui/button";
-  import CallFormState, { timeslots } from "./callForm.state.svelte";
-  import Configure, { type SceneConfiguration } from "./configure.svelte";
+  import CallFormState, { timeslots } from "./state/callForm.state.svelte";
+  import ConfigureScenes, { type SceneConfiguration } from "./scenes.svelte";
 
   const callForm = new CallFormState(client.authStore.record!);
 
@@ -154,7 +154,7 @@
     {/if}
   </section>
   <Card.Title class="mt-8 m-4 text-center">Scenes</Card.Title>
-  <Configure
+  <ConfigureScenes
     bind:scenes={callForm.scenes}
     availableMembers={callForm.participants}
   />
