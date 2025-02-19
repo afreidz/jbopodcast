@@ -8,7 +8,7 @@ let { class: classList } = Astro.props;
 </Base>
 
 <script>
-  import client from "$/lib/pocketbase";
+  import client from "$/lib/pocketbase/client";
   import { navigate } from "astro:transitions/client";
   if (!client.authStore.isValid) navigate("/insider/signin");
 </script>

@@ -19,17 +19,9 @@ export default defineConfig({
         context: "client",
         access: "public",
       }),
-      PUBLIC_PULSE_API_KEY: envField.string({
-        context: "client",
-        access: "public",
-      }),
-      PUBLIC_SB_ANON_KEY: envField.string({
-        context: "client",
-        access: "public",
-      }),
-      PUBLIC_SB_PROJECT_URL: envField.string({
-        context: "client",
-        access: "public",
+      PB_SUPERUSER_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
       }),
     },
   },

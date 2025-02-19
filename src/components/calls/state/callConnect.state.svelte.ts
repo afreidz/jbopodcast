@@ -1,12 +1,14 @@
 import { toast } from "svelte-sonner";
 import { actions } from "astro:actions";
+import client from "$/lib/pocketbase/client";
 import PeerConnection from "./peer.state.svelte";
 import type { Call, Scene } from "$/actions/calls";
-import type { CurrentUser } from "$/actions/members";
+import type { CurrentUser } from "$/lib/pocketbase/client";
 
 export default class CallState {
   protected _localStream: MediaStream | null = $state(null);
   protected _connections: PeerConnection[] = $state([]);
+  protected _switchingScenes: boolean = $state(false);
   protected _activeScene: Scene | null = $state(null);
   protected _call: Call | null = $state(null);
   protected _loading: boolean = $state(true);
@@ -31,8 +33,20 @@ export default class CallState {
     return this._call?.expand?.scenes || [];
   }
 
-  set activeScene(s: Scene | null) {
-    this._activeScene = s;
+  get hosting() {
+    return this._call?.host === this.currentUser.id;
+  }
+
+  get switchingScenes() {
+    return this._switchingScenes;
+  }
+
+  async setActiveScene(s: Scene) {
+    if (!this._call) return toast.error("Unable to set scene with no call");
+    this._switchingScenes = true;
+    await new Promise((r) => setTimeout(r, 400)),
+    await actions.calls.setActiveScene({ call: this._call.id, scene: s.id });
+    this._switchingScenes = false;
   }
 
   get callMembers() {
@@ -81,6 +95,25 @@ export default class CallState {
       await connection.connect();
       this._connections.push(connection);
     });
+
+    client.collection("calls").subscribe<Call>(
+      this._call.id,
+      ({ record }) => {
+        if (
+          record.activeScene !== this._activeScene?.id &&
+          record.expand?.activeScene
+        ) {
+          this._activeScene = record.expand.activeScene;
+        }
+      },
+      {
+        expand:
+          "activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D",
+      }
+    );
+
+    const scene = this._call.expand?.activeScene || this.scenes.at(-1);
+    if (scene) this._activeScene = scene;
   }
 
   async init(callId: string, stream: MediaStream) {

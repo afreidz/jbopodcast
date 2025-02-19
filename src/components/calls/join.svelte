@@ -1,8 +1,8 @@
 <script lang="ts">
-  import client from "$/lib/pocketbase";
   import { SceneGrids } from "$/lib/classes";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
+  import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import CallState from "./state/callConnect.state.svelte";
   import Devices from "$/components/shared/devices.svelte";
@@ -13,29 +13,13 @@
     call: string;
   };
 
+  const currentUser = getCurrentUser();
+  const callState = new CallState(currentUser);
   const qs = new URLSearchParams(window.location.search);
-  const callState = new CallState(client.authStore.record!);
 
-  let switching = $state(false);
   let { call }: Props = $props();
   let stage: HTMLElement | undefined = $state(undefined);
   let localStream: MediaStream | undefined = $state(undefined);
-
-  // onMount(() => {
-  //   supabase.channel("schema-db-changes").on(
-  //     "postgres_changes",
-  //     {
-  //       event: "*",
-  //       schema: "public",
-  //       table: "call",
-  //     },
-  //     async (payload: RealtimePostgresChangesPayload<CallWithConnections>) => {
-  //       if (payload.eventType !== "UPDATE") return;
-  //       if (payload.new.id !== call.id) return;
-  //       // TODO change scene
-  //     }
-  //   );
-  // });
 
   $effect(() => {
     if (localStream) {
@@ -45,22 +29,19 @@
 
   async function onSceneChange(s: Scene) {
     if (callState.activeScene?.id === s.id) return;
-    switching = true;
-    await new Promise((r) => setTimeout(r, 400));
-    callState.activeScene = s;
-    switching = false;
+    await callState.setActiveScene(s);
   }
 </script>
 
 <svelte:window onbeforeunload={async () => await callState.disconnect()} />
 
 {#snippet Feed(peer: Member | null | undefined, area: "A" | "B" | "C" | "D")}
-  {#if peer?.id === client.authStore.record!.id}
+  {#if peer?.id === currentUser.id}
     <VideoFeed
       muted
       stream={localStream}
+      member={currentUser}
       style="grid-area: {area};"
-      member={client.authStore.record! as unknown as Member}
     />
   {:else if peer}
     {@const p = callState.remoteStreams.find((s) => s.id === peer.id)}
@@ -73,7 +54,7 @@
 {#snippet Overflow(peers: Member[])}
   <div class="flex flex-col justify-evenly" style="grid-area: B">
     {#each peers as peer}
-      {#if peer.id === client.authStore.record!.id}
+      {#if peer.id === currentUser.id}
         <VideoFeed
           muted
           member={peer}
@@ -92,13 +73,15 @@
 
 <Sidebar collapsible="none" class="size-full flex items-center justify-center">
   {#snippet sidebar()}
-    <HostTools {onSceneChange} scenes={callState.scenes} class="h-svh" />
+    {#if callState.hosting}
+      <HostTools {onSceneChange} scenes={callState.scenes} class="h-svh" />
+    {/if}
   {/snippet}
   {#if callState.activeScene && localStream}
     <main
       bind:this={stage}
-      class:opacity-0={switching}
       class:border-8={qs.has("showFrame")}
+      class:opacity-0={callState.switchingScenes}
       style={SceneGrids[callState.activeScene.type]}
       class="flex-none grid w-[1920px] h-[1080px] overflow-clip border-red-500 border-dashed transition-opacity duration-300 px-8"
     >

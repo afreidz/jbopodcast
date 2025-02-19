@@ -1,5 +1,5 @@
-import client from '$/lib/pocketbase';
 import { actions } from "astro:actions";
+import client from "$/lib/pocketbase/client";
 import type { Connection } from "$/actions/connection";
 
 export const MIN_VIDEO_BITRATE = 2000;
@@ -42,24 +42,47 @@ export default class PeerConnection {
         this.remoteStream = streams[0];
       }
     });
+
+    client.collection("connections").subscribe("*", async (e) => {
+      if (
+        e.action === "delete" &&
+        ((e.record.from === this.userId && e.record.to === this.peerId) ||
+          (e.record.to === this.userId && e.record.from === this.peerId))
+      ) {
+        console.log("Peer disconnected. Submitting new offer.");
+        await new Promise(r => setTimeout(r, 100));
+        await this.createOffer();
+      } else if (
+        e.action === "update" &&
+        e.record.from === this.peerId &&
+        e.record.to === this.userId &&
+        e.record.offer &&
+        !e.record.answer
+      ) {
+        console.log("Peer sent and offer. Answering offer.");
+        await this.answerOffer(e.record);
+      } else if (
+        e.action === "update" &&
+        e.record.to === this.peerId &&
+        e.record.from === this.userId &&
+        e.record.answer
+      ) {
+        console.log("Peer answered offer. Establishing Connection.");
+        await this.setAnswer(e.record.answer as RTCSessionDescription);
+      }
+    });
   }
 
   public async connect() {
-    const request = (await actions.connections.find({
-      to: this.userId,
-      from: this.peerId,
-      call: this.callId,
-    })).data;
-
-    if (request) {
-      client.collection("connections").subscribe(request.id, () => {
-
+    const request = (
+      await actions.connections.find({
+        to: this.userId,
+        from: this.peerId,
+        call: this.callId,
       })
-      await this.answerOffer(request);
-    }
+    ).data;
 
-    return await this.createOffer();
-
+    return request ? await this.answerOffer(request) : await this.createOffer();
   }
 
   protected async createOffer() {
@@ -69,27 +92,20 @@ export default class PeerConnection {
     });
     await this.rtc.setLocalDescription(offer);
 
+    this.rtc.restartIce()
     await new Promise((r) => {
       this.rtc.addEventListener("icegatheringstatechange", () => {
         if (this.rtc.iceGatheringState === "complete") r(true);
       });
     });
 
-    const response = await actions.connections.offerToPeer({
+    await actions.connections.offerToPeer({
       offer,
       ice: this.ice,
       to: this.peerId,
       from: this.userId,
       call: this.callId,
     });
-
-    if (response.data) {
-      client.collection("connections").subscribe(response.data.id, async ({ record, action }) => {
-        console.log(action)
-        if (record.answer) await this.setAnswer(record.answer as RTCSessionDescription)
-      })
-    }
-
   }
 
   protected async answerOffer(connection: Connection) {
@@ -103,9 +119,8 @@ export default class PeerConnection {
     await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
 
     const answer = await this.rtc.createAnswer();
-    let finalAnswer = answer;
+    await this.rtc.setLocalDescription(answer);
 
-    await this.rtc.setLocalDescription(finalAnswer);
     await actions.connections.updateConnection({
       answer,
       id: connection.id,

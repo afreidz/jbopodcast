@@ -1,7 +1,7 @@
-import client from "$/lib/pocketbase";
 import { actions } from "astro:actions";
 import type { Call } from "$/actions/calls";
-import type { CurrentUser } from "$/actions/members";
+import client from "$/lib/pocketbase/client";
+import type { CurrentUser } from "$/lib/pocketbase/client";
 
 export default class DashboardState {
   protected currentUser: CurrentUser;

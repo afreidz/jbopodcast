@@ -1,9 +1,10 @@
 import { toast } from "svelte-sonner";
-import client from "$/lib/pocketbase";
 import { actions } from "astro:actions";
 import type { Call } from "$/actions/calls";
+import client from "$/lib/pocketbase/client";
+import type { Member } from "$/actions/members";
+import type { CurrentUser } from "$/lib/pocketbase/client";
 import type { SceneConfiguration } from "../scenes.svelte";
-import type { CurrentUser, Member } from "$/actions/members";
 import { parseAbsoluteToLocal, type DateValue } from "@internationalized/date";
 
 export type Timeslot = { value: { h: number; m: number }; label: string };

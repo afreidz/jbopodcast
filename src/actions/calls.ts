@@ -7,9 +7,9 @@ import type {
 import { z } from "astro:schema";
 import { defineAction } from "astro:actions";
 import { ScenesTypeOptions } from "@pocketbase/types";
-import client, { queryBuilder, query } from "$/lib/pocketbase";
+import { queryBuilder, query, impersonate } from "$/lib/pocketbase/server";
 
-export const expand = "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D";
+export const expand = "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D,activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D";
 
 export const SceneCreateSchema = z.object({
   callId: z.string(),
@@ -34,7 +34,8 @@ const CallScheama = z.object({
 
 export const create = defineAction({
   input: CallScheama,
-  handler: async (input) => {
+  handler: async (input, context) => {
+    const client = await impersonate(context.cookies);
     const { scenes, ...data } = input;
 
     if (scenes.length) {
@@ -64,7 +65,9 @@ export const getUpcoming = defineAction({
     date: z.coerce.date(),
     userId: z.string(),
   }),
-  handler: async ({ date, userId }) => {
+  handler: async ({ date, userId }, context) => {
+    const client = await impersonate(context.cookies);
+
     const filter = queryBuilder(
       query.and(
         query.gte("scheduled", date),
@@ -74,7 +77,7 @@ export const getUpcoming = defineAction({
 
     const response = await client.collection("calls").getList<Call>(0, 5, {
       expand,
-      // filter,
+      filter,
     });
 
     return response.items;
@@ -83,10 +86,22 @@ export const getUpcoming = defineAction({
 
 export const getById = defineAction({
   input: z.string(),
-  handler: async (id) => {
+  handler: async (id, context) => {
+    const client = await impersonate(context.cookies);
     return await client.collection("calls").getOne<Call>(id, { expand });
   },
 });
+
+export const setActiveScene = defineAction({
+  input: z.object({
+    call: z.string(),
+    scene: z.string(),
+  }),
+  async handler({ call, scene }, context) {
+    const client = await impersonate(context.cookies);
+    return await client.collection("calls").update(call, { activeScene: scene });
+  }
+})
 
 export type Scene = ScenesResponse<{
   A?: UsersRecord;
@@ -98,5 +113,6 @@ export type Scene = ScenesResponse<{
 export type Call = CallsResponse<{
   scenes: Scene[];
   host: UsersRecord;
+  activeScene: Scene;
   guests: UsersRecord[];
 }>;
