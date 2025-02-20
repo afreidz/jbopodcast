@@ -12,7 +12,6 @@ RUN npm install
 COPY . .
 
 # Build your application.
-RUN npm run types
 RUN npm run build
 
 # Set environment variables and expose the appropriate port.

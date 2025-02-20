@@ -27,6 +27,7 @@ pnpm-debug.log*
 # pocketbase
 pocketbase/*
 !pocketbase/pb_migrations
+!pocketbase/types.ts
 
 # archives
 ____*
