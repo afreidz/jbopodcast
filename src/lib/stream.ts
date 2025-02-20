@@ -4,9 +4,10 @@ export async function stream(
   stage: HTMLElement,
   streams: (MediaStream | null)[]
 ) {
-  const ws = new WebSocket(`ws://localhost:${PUBLIC_LOCAL_RELAY_PORT}`);
-  const socketReady = Promise.withResolvers();
+  const ws = new WebSocket(`wss://localhost:${PUBLIC_LOCAL_RELAY_PORT}`);
+  ws.addEventListener("error", (e) => console.error(e));
 
+  const socketReady = Promise.withResolvers();
   ws.addEventListener("open", socketReady.resolve);
   setTimeout(socketReady.reject, 10000);
 
