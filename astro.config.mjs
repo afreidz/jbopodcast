@@ -1,8 +1,9 @@
 // @ts-check
 import svelte from "@astrojs/svelte";
-import netlify from "@astrojs/netlify";
 import tailwind from "@astrojs/tailwind";
 import { defineConfig, envField } from "astro/config";
+
+import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
@@ -38,7 +39,7 @@ export default defineConfig({
     },
   },
 
-  adapter: netlify({
-    cacheOnDemandPages: false,
+  adapter: node({
+    mode: "standalone",
   }),
 });
