@@ -1,6 +1,9 @@
 FROM node:lts-slim as runtime
 WORKDIR /app
 
+ARG PUBLIC_PB_ENDPOINT $PUBLIC_PB_ENDPOINT
+ARG PB_SUPERUSER_TOKEN $PB_SUPERUSER_TOKEN
+
 # Ensure that both node_modules and package-lock.json are removed.
 COPY package.json .
 RUN rm -rf node_modules package-lock.json
