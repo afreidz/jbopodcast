@@ -1,5 +1,5 @@
-import url from "url";
 import path from "path";
+import { URL } from "url";
 import https from "https";
 import ffmpeg from "fluent-ffmpeg";
 import { fileURLToPath } from "url";
@@ -13,27 +13,17 @@ const __dirname = path.dirname(__filename);
 
 ffmpeg.setFfmpegPath(ffmpegPath!);
 
-const PORT = process.env.PUBLIC_LOCAL_RELAY_PORT || 8888;
+const RELAY_URL = new URL(process.env.PUBLIC_LOCAL_RELAY!);
+const HOST = RELAY_URL.hostname || "localhost";
+const PORT = RELAY_URL.port || 8888;
 
 const serverOptions = {
   cert: await readFile(path.join(__dirname, "cert", "cert.pem")),
   key: await readFile(path.join(__dirname, "cert", "key.pem")),
 };
 
-const httpsServer = https.createServer(serverOptions, (req, res) => {
-  const parsedUrl = url.parse(req.url!, true);
-  if (parsedUrl.pathname === "/test") {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("test");
-  } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not Found");
-  }
-});
-
-httpsServer.listen(PORT, () => {
-  console.log(`HTTPS server is running on https://localhost:${PORT}`);
-});
+const httpsServer = https.createServer(serverOptions);
+httpsServer.listen(Number(PORT), HOST, 50);
 
 const server = new WebSocketServer({ server: httpsServer });
 let client: WebSocket | null = null;
@@ -96,4 +86,4 @@ server.on("connection", (ws) => {
   });
 });
 
-console.log(`WebSocket server is running on ${PORT}`);
+console.log(`WebSocket server is running on ${RELAY_URL}`);

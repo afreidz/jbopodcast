@@ -1,10 +1,10 @@
-import { PUBLIC_LOCAL_RELAY_PORT } from "astro:env/client";
+import { PUBLIC_LOCAL_RELAY } from "astro:env/client";
 
 export async function stream(
   stage: HTMLElement,
   streams: (MediaStream | null)[]
 ) {
-  const ws = new WebSocket(`wss://localhost:${PUBLIC_LOCAL_RELAY_PORT}`);
+  const ws = new WebSocket(PUBLIC_LOCAL_RELAY);
   ws.addEventListener("error", (e) => console.error(e));
 
   const socketReady = Promise.withResolvers();
