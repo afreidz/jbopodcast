@@ -31,3 +31,6 @@ pocketbase/*
 
 # archives
 ____*
+
+# local certs
+relay/cert
