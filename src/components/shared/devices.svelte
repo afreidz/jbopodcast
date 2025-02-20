@@ -20,16 +20,30 @@
 
   onMount(async () => {
     if (!permission) {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
+      const stream = await navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+          video: true,
+        })
+        .catch((err) => {
+          console.error(err);
+          return null;
+        });
       if (stream) permission = `${+new Date()}`;
     }
 
-    devices = await navigator.mediaDevices.enumerateDevices();
+    devices = await navigator.mediaDevices.enumerateDevices().catch((err) => {
+      console.error(err);
+      return [];
+    });
+
     cameras = devices.filter((d) => d.kind === "videoinput");
     microphones = devices.filter((d) => d.kind === "audioinput");
+
+    if (!permission || !devices.length)
+      return toast.error(
+        "Unable to join call. Could not connect required devices. See console for more details"
+      );
   });
 
   $effect(() => {

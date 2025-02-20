@@ -38,37 +38,39 @@ export default class PeerConnection {
 
     this.rtc.addEventListener("track", ({ streams }) => {
       if (streams[0]) {
-        console.log("Stream received", streams[0]);
         this.remoteStream = streams[0];
       }
     });
 
     client.collection("connections").subscribe("*", async (e) => {
       if (
-        e.action === "delete" &&
-        ((e.record.from === this.userId && e.record.to === this.peerId) ||
-          (e.record.to === this.userId && e.record.from === this.peerId))
-      ) {
-        console.log("Peer disconnected. Submitting new offer.");
-        await new Promise(r => setTimeout(r, 100));
-        await this.createOffer();
-      } else if (
         e.action === "update" &&
+        e.record.call === this.callId &&
         e.record.from === this.peerId &&
         e.record.to === this.userId &&
         e.record.offer &&
         !e.record.answer
       ) {
-        console.log("Peer sent and offer. Answering offer.");
+        console.log("Peer made an offer. Answering offer.");
         await this.answerOffer(e.record);
       } else if (
         e.action === "update" &&
+        e.record.call === this.callId &&
         e.record.to === this.peerId &&
         e.record.from === this.userId &&
         e.record.answer
       ) {
         console.log("Peer answered offer. Establishing Connection.");
         await this.setAnswer(e.record.answer as RTCSessionDescription);
+      } else if (
+        e.action === "create" &&
+        e.record.call === this.callId &&
+        e.record.to === this.userId &&
+        e.record.from === this.peerId &&
+        e.record.offer
+      ) {
+        console.log("Peer made a new offer. Answering new offer.");
+        await this.answerOffer(e.record);
       }
     });
   }
@@ -92,7 +94,7 @@ export default class PeerConnection {
     });
     await this.rtc.setLocalDescription(offer);
 
-    this.rtc.restartIce()
+    this.rtc.restartIce();
     await new Promise((r) => {
       this.rtc.addEventListener("icegatheringstatechange", () => {
         if (this.rtc.iceGatheringState === "complete") r(true);

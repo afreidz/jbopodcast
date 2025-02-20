@@ -16,6 +16,10 @@ export default defineConfig({
 
   env: {
     schema: {
+      PUBLIC_LOCAL_RELAY_PORT: envField.number({
+        context: "client",
+        access: "public",
+      }),
       PUBLIC_PB_ENDPOINT: envField.string({
         context: "client",
         access: "public",

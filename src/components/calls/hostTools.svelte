@@ -9,23 +9,43 @@
     Countdown,
   } from "$/components/calls/scenes.svelte";
 
+  import { stream } from "$/lib/stream";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
   import MemberIcon from "lucide-svelte/icons/user";
   import Avatar from "$/components/shared/avatar.svelte";
   import { ScrollArea } from "$/components/ui/scroll-area";
+  import Button from "$/components/ui/button/button.svelte";
 
   type Props = {
     class?: string;
     scenes: Scene[];
+    stage?: HTMLElement;
+    streaming?: boolean;
+    streams: (MediaStream | null)[];
     onSceneChange?: (s: Scene) => void;
   };
 
+  let streamStopper: (() => void) | null = $state(null);
+
   let {
+    stage,
     scenes,
+    streams,
     class: classList = "",
     onSceneChange = console.log,
+    streaming = $bindable(false),
   }: Props = $props();
+
+  async function toggleStream() {
+    if (streamStopper) {
+      streamStopper();
+      streaming = false;
+    } else if (stage && streams.length) {
+      streamStopper = await stream(stage, streams);
+      streaming = true;
+    }
+  }
 </script>
 
 {#snippet SceneMember(member: Member | null)}
@@ -83,4 +103,15 @@
       </button>
     {/each}
   </ScrollArea>
+  <footer class="p-2 flex">
+    {#if stage}
+      <Button
+        class="flex-1"
+        onclick={toggleStream}
+        variant={streaming ? "destructive" : "default"}
+      >
+        {streaming ? "End" : "Start"} Stream
+      </Button>
+    {/if}
+  </footer>
 </div>

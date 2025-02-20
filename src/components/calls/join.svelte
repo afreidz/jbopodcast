@@ -73,8 +73,14 @@
 
 <Sidebar collapsible="none" class="size-full flex items-center justify-center">
   {#snippet sidebar()}
-    {#if callState.hosting}
-      <HostTools {onSceneChange} scenes={callState.scenes} class="h-svh" />
+    {#if callState.hosting && localStream}
+      <HostTools
+        {stage}
+        class="h-svh"
+        {onSceneChange}
+        scenes={callState.scenes}
+        streams={[...callState.remoteStreams.map((r) => r.stream), localStream]}
+      />
     {/if}
   {/snippet}
   {#if callState.activeScene && localStream}
