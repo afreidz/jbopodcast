@@ -153,7 +153,7 @@
         {/if}
         <div class="flex items-center justify-end space-x-2">
           <Switch bind:checked={noiseSuppression} id="noiseSuppression" />
-          <Label for="noiseSuppression">Noise Suppression?</Label>
+          <Label for="noiseSuppression">Request Noise Suppression?</Label>
         </div>
         <Button type="submit" class="mt-4">Set Devices</Button>
       </form>

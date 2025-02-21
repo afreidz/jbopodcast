@@ -79,7 +79,10 @@
         class="h-svh"
         {onSceneChange}
         scenes={callState.scenes}
-        streams={[...callState.remoteStreams.map((r) => r.stream), localStream]}
+        streams={[
+          ...callState.remoteStreams,
+          { id: currentUser.id, stream: localStream },
+        ]}
       />
     {/if}
   {/snippet}

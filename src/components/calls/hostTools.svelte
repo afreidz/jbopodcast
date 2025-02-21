@@ -9,6 +9,7 @@
     Countdown,
   } from "$/components/calls/scenes.svelte";
 
+  import { onMount } from "svelte";
   import { stream } from "$/lib/stream";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
@@ -16,16 +17,22 @@
   import Avatar from "$/components/shared/avatar.svelte";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import Button from "$/components/ui/button/button.svelte";
+  import { actions } from "astro:actions";
+  import Participant from "./participant.svelte";
 
   type Props = {
     class?: string;
     scenes: Scene[];
     stage?: HTMLElement;
     streaming?: boolean;
-    streams: (MediaStream | null)[];
+    streams: {
+      id: string;
+      stream: MediaStream | null;
+    }[];
     onSceneChange?: (s: Scene) => void;
   };
 
+  let allMembers: Member[] = $state([]);
   let streamStopper: (() => void) | null = $state(null);
 
   let {
@@ -37,12 +44,20 @@
     streaming = $bindable(false),
   }: Props = $props();
 
+  onMount(async () => {
+    const resp = await actions.members.getAll();
+    if (resp.data) allMembers = resp.data;
+  });
+
   async function toggleStream() {
     if (streamStopper) {
       streamStopper();
       streaming = false;
     } else if (stage && streams.length) {
-      streamStopper = await stream(stage, streams);
+      streamStopper = await stream(
+        stage,
+        streams.map((s) => s.stream)
+      );
       streaming = true;
     }
   }
@@ -103,6 +118,14 @@
       </button>
     {/each}
   </ScrollArea>
+  <div class="flex-1">
+    {#each streams as { id, stream }}
+      {@const member = allMembers.find((m) => m.id === id)}
+      {#if member}
+        <Participant {member} {stream} />
+      {/if}
+    {/each}
+  </div>
   <footer class="p-2 flex">
     {#if stage}
       <Button

@@ -18,6 +18,7 @@
     stream = null,
     class: classList = "",
   }: Props = $props();
+
   let video: HTMLVideoElement | null = $state(null);
 
   $effect(() => {
