@@ -26,5 +26,7 @@ export async function impersonate(cookies: AstroCookies) {
       code: "UNAUTHORIZED",
     });
 
-  return await pb.collection("users").impersonate(record.id, 3600) as TypedPocketBase;
+  return (await pb
+    .collection("users")
+    .impersonate(record.id, 3600)) as TypedPocketBase;
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { toast } from "svelte-sonner";
+  import { Switch } from "$/components/ui/switch";
   import { Button } from "$/components/ui/button";
   import * as Dialog from "$/components/ui/dialog";
   import * as Select from "$/components/ui/select";
@@ -15,6 +16,9 @@
   let cameras: MediaDeviceInfo[] = $state([]);
   let microphones: MediaDeviceInfo[] = $state([]);
   let permission = $state(localStorage.getItem("permission"));
+  let noiseSuppression: boolean = $state(
+    !!localStorage.getItem("noiseSuppression")
+  );
 
   let { stream = $bindable() }: Props = $props();
 
@@ -58,6 +62,11 @@
   );
 
   $effect(() => {
+    if (!noiseSuppression) localStorage.removeItem("noiseSuppression");
+    if (noiseSuppression) localStorage.setItem("noiseSuppression", "yes");
+  });
+
+  $effect(() => {
     if (camera) localStorage.setItem("camera", camera);
   });
 
@@ -74,7 +83,9 @@
     if (!camera || !microphone) return toast.error("Unable to set mic/camera");
     stream = await navigator.mediaDevices.getUserMedia({
       audio: {
+        noiseSuppression,
         deviceId: microphone,
+        echoCancellation: true,
         sampleRate: { ideal: 96000, min: 44100 },
       },
       video: {
@@ -140,6 +151,10 @@
             </Select.Root>
           </div>
         {/if}
+        <div class="flex items-center justify-end space-x-2">
+          <Switch bind:checked={noiseSuppression} id="noiseSuppression" />
+          <Label for="noiseSuppression">Noise Suppression?</Label>
+        </div>
         <Button type="submit" class="mt-4">Set Devices</Button>
       </form>
     </Dialog.Content>

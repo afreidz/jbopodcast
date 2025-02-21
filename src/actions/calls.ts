@@ -9,7 +9,8 @@ import { defineAction } from "astro:actions";
 import { ScenesTypeOptions } from "@pocketbase/types";
 import { queryBuilder, query, impersonate } from "$/lib/pocketbase/server";
 
-export const expand = "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D,activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D";
+export const expand =
+  "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D,activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D";
 
 export const SceneCreateSchema = z.object({
   callId: z.string(),
@@ -99,9 +100,11 @@ export const setActiveScene = defineAction({
   }),
   async handler({ call, scene }, context) {
     const client = await impersonate(context.cookies);
-    return await client.collection("calls").update(call, { activeScene: scene });
-  }
-})
+    return await client
+      .collection("calls")
+      .update(call, { activeScene: scene });
+  },
+});
 
 export type Scene = ScenesResponse<{
   A?: UsersRecord;
