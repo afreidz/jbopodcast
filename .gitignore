@@ -33,4 +33,4 @@ pocketbase/*
 ____*
 
 # local certs
-relay/cert
+cert
