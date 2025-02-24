@@ -1,73 +1,73 @@
 export default class AudioAnalyzer {
-  protected interval: NodeJS.Timeout | null = null;
+  private animationFrameId?: number;
   protected analyser: AnalyserNode;
   protected bufferLength: number;
-  protected gainNode: GainNode;
-  protected data: Uint8Array;
   protected ac: AudioContext;
 
-  protected _gain: number = $state(0);
-  protected _percent: number = $state(0);
-  protected _level: "loud" | "soft" | "normal" = $state("normal");
+  protected _percentage: number = $state(0);
+  protected _decibels: number = $state(-60);
+  protected _level: "peaked" | "loud" | "normal" = $state("normal");
 
   constructor() {
     this.ac = new AudioContext();
-    this.gainNode = this.ac.createGain();
     this.analyser = this.ac.createAnalyser();
 
-    this.analyser.fftSize = 256;
+    this.analyser.fftSize = 2048;
+    this.analyser.maxDecibels = -0;
+    this.analyser.minDecibels = -60;
+    this.analyser.smoothingTimeConstant = 0.5;
 
     this.bufferLength = this.analyser.frequencyBinCount;
-    this.data = new Uint8Array(this.bufferLength);
-
-    this.gainNode.connect(this.analyser);
   }
 
   init(stream: MediaStream) {
+    this.stop();
+
     const source = this.ac.createMediaStreamSource(stream);
-    source.connect(this.gainNode);
-
-    this.interval = setInterval(() => {
-      this.update();
-    }, 10);
-
-    this.update();
-  }
-
-  get gain() {
-    return this._gain;
+    source.connect(this.analyser);
+    this.animationFrameId = window.requestAnimationFrame(() => this.update());
   }
 
   get level() {
     return this._level;
   }
 
+  get decibels() {
+    return this._decibels;
+  }
+
   get percentage() {
-    return this._percent;
+    return this._percentage;
   }
 
   stop() {
-    if (this.interval) clearInterval(this.interval);
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
   }
 
-  setGain(value: number): void {
-    if (value >= 0 && value <= 2) {
-      this.gainNode.gain.value = value;
-      this._gain = this.gainNode.gain.value;
+  update() {
+    const buffer = new Float32Array(this.analyser.fftSize);
+    this.analyser.getFloatTimeDomainData(buffer);
+
+    let sumOfSquares = 0;
+    for (let i = 0; i < buffer.length; i++) {
+      sumOfSquares += buffer[i] ** 2;
     }
-  }
 
-  protected update() {
-    this.analyser.getByteFrequencyData(this.data);
-    const sum = this.data.reduce((acc, val) => acc + val, 0);
-    const average = sum / this.bufferLength;
-    const percentage = (average / 255) * 100;
+    this._decibels = 10 * Math.log10(sumOfSquares / buffer.length);
 
-    let level = "normal";
-    if (percentage < 30) level = "soft";
-    else if (percentage > 70) level = "loud";
+    const range = this.analyser.maxDecibels - this.analyser.minDecibels;
+    this._percentage =
+      ((this._decibels - this.analyser.minDecibels) / range) * 100;
+    this._percentage = Math.max(0, Math.min(100, this._percentage));
 
-    this._level = level as "loud" | "soft" | "normal";
-    this._percent = percentage;
+    if (this._percentage > 90) {
+      this._level = "peaked";
+    } else if (this._percentage > 67) {
+      this._level = "loud";
+    } else {
+      this._level = "normal";
+    }
+
+    this.animationFrameId = window.requestAnimationFrame(() => this.update());
   }
 }

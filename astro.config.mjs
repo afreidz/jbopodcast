@@ -1,9 +1,8 @@
 // @ts-check
+import node from "@astrojs/node";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
 import { defineConfig, envField } from "astro/config";
-
-import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
@@ -28,18 +27,10 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
-    },
-  },
-
-  vite: {
-    resolve: {
-      alias: {
-        ".prisma/client/index-browser":
-          "./node_modules/.prisma/client/index-browser.js",
-      },
-    },
-    build: {
-      cssCodeSplit: false,
+      PUBLIC_YT_CHANNEL: envField.string({
+        context: "client",
+        access: "public",
+      }),
     },
   },
 

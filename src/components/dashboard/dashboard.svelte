@@ -14,7 +14,7 @@
 </script>
 
 <Sidebar class="size-full flex items-center justify-center">
-  {#snippet sidebar()}
+  {#snippet sidebarLeft()}
     <Nav />
   {/snippet}
   <UpcomingCalls calls={dashboard.upcomingCalls} loading={dashboard.loading} />

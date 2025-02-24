@@ -52,7 +52,7 @@
 </script>
 
 <Sidebar class="mx-auto grid max-w-screen-xl gap-4 p-4">
-  {#snippet sidebar()}
+  {#snippet sidebarLeft()}
     <Nav />
   {/snippet}
   <form method="POST" class="contents" onsubmit={handeSubmit}>

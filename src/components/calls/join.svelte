@@ -4,17 +4,21 @@
   import type { Member } from "$/actions/members";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
-  import CallState from "./state/callConnect.state.svelte";
   import Devices from "$/components/shared/devices.svelte";
   import HostTools from "$/components/calls/hostTools.svelte";
   import VideoFeed from "$/components/calls/videoFeed.svelte";
+  import StreamTools from "$/components/calls/streamTools.svelte";
+  import CallState from "$/components/calls/state/callConnect.state.svelte";
+  import StreamingState from "./state/streaming.state.svelte";
 
   type Props = {
     call: string;
   };
 
   const currentUser = getCurrentUser();
+  const streamingState = new StreamingState();
   const callState = new CallState(currentUser);
+
   const qs = new URLSearchParams(window.location.search);
 
   let { call }: Props = $props();
@@ -26,6 +30,8 @@
       callState.init(call, localStream);
     }
   });
+
+  $effect(() => {});
 
   async function onSceneChange(s: Scene) {
     if (callState.activeScene?.id === s.id) return;
@@ -71,13 +77,18 @@
   </div>
 {/snippet}
 
-<Sidebar collapsible="none" class="size-full flex items-center justify-center">
-  {#snippet sidebar()}
+<Sidebar
+  collapsible="offcanvas"
+  class="size-full flex items-center justify-center"
+  sidebarRight={streamingState.live ? sidebarRight : undefined}
+>
+  {#snippet sidebarLeft()}
     {#if callState.hosting && localStream}
       <HostTools
         {stage}
         class="h-svh"
         {onSceneChange}
+        state={streamingState}
         scenes={callState.scenes}
         streams={[
           ...callState.remoteStreams,
@@ -111,3 +122,12 @@
 </Sidebar>
 
 <Devices bind:stream={localStream} />
+
+{#snippet sidebarRight()}
+  <aside class="flex-1 flex flex-col">
+    <StreamTools
+      videoId={streamingState.videoId ?? undefined}
+      onclick={async () => await streamingState.refreshYoutube()}
+    />
+  </aside>
+{/snippet}

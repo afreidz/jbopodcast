@@ -6,6 +6,7 @@
   import * as Dialog from "$/components/ui/dialog";
   import * as Select from "$/components/ui/select";
   import Label from "$/components/ui/label/label.svelte";
+  import { Fullscreen } from "lucide-svelte";
 
   type Props = {
     stream?: MediaStream;
@@ -78,8 +79,8 @@
     if (permission) localStorage.setItem("permission", permission);
   });
 
-  async function updateStream(e: SubmitEvent) {
-    e.preventDefault();
+  async function updateStream(e?: SubmitEvent) {
+    e?.preventDefault();
     if (!camera || !microphone) return toast.error("Unable to set mic/camera");
     stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -98,8 +99,21 @@
 </script>
 
 {#if devices && shown}
-  <Dialog.Root open>
-    <Dialog.Content>
+  <Dialog.Root
+    open
+    onOpenChange={(open) => {
+      if (!open && (!microphone || !camera)) {
+        open = true;
+        shown = true;
+      } else {
+        updateStream();
+      }
+    }}
+  >
+    <Dialog.Content
+      escapeKeydownBehavior="ignore"
+      interactOutsideBehavior="ignore"
+    >
       <Dialog.Header class="mb-4">
         <Dialog.Title>Select Devices</Dialog.Title>
       </Dialog.Header>

@@ -10,21 +10,21 @@
   } from "$/components/calls/scenes.svelte";
 
   import { onMount } from "svelte";
-  import { stream } from "$/lib/stream";
+  import { actions } from "astro:actions";
   import type { Scene } from "$/actions/calls";
   import type { Member } from "$/actions/members";
   import MemberIcon from "lucide-svelte/icons/user";
   import Avatar from "$/components/shared/avatar.svelte";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import Button from "$/components/ui/button/button.svelte";
-  import { actions } from "astro:actions";
-  import Participant from "./participant.svelte";
+  import StreamingState from "./state/streaming.state.svelte";
+  import Participant from "$/components/calls/participant.svelte";
 
   type Props = {
     class?: string;
     scenes: Scene[];
     stage?: HTMLElement;
-    streaming?: boolean;
+    state: StreamingState;
     streams: {
       id: string;
       stream: MediaStream | null;
@@ -33,15 +33,14 @@
   };
 
   let allMembers: Member[] = $state([]);
-  let streamStopper: (() => void) | null = $state(null);
 
   let {
     stage,
     scenes,
     streams,
+    state: streamingState,
     class: classList = "",
     onSceneChange = console.log,
-    streaming = $bindable(false),
   }: Props = $props();
 
   onMount(async () => {
@@ -49,18 +48,14 @@
     if (resp.data) allMembers = resp.data;
   });
 
-  async function toggleStream() {
-    if (streamStopper) {
-      streamStopper();
-      streaming = false;
-    } else if (stage && streams.length) {
-      streamStopper = await stream(
-        stage,
-        streams.map((s) => s.stream)
+  $effect(() => {
+    if (streams.length && stage) {
+      streamingState.init(
+        streams.filter((s) => !!s.stream).map((s) => s.stream) as MediaStream[],
+        stage
       );
-      streaming = true;
     }
-  }
+  });
 </script>
 
 {#snippet SceneMember(member: Member | null)}
@@ -118,22 +113,29 @@
       </button>
     {/each}
   </ScrollArea>
-  <div class="flex-1">
+  <strong>Participant Audio</strong>
+  <ScrollArea class="w-full flex-1">
     {#each streams as { id, stream }}
       {@const member = allMembers.find((m) => m.id === id)}
       {#if member}
-        <Participant {member} {stream} />
+        {#key member.id}
+          <Participant {member} {stream} />
+        {/key}
       {/if}
     {/each}
-  </div>
+  </ScrollArea>
   <footer class="p-2 flex">
-    {#if stage}
+    {#if streamingState.ready}
       <Button
+        disabled={streamingState.loading}
         class="flex-1"
-        onclick={toggleStream}
-        variant={streaming ? "destructive" : "default"}
+        onclick={() =>
+          streamingState.live
+            ? streamingState.stopStream()
+            : streamingState.startStream()}
+        variant={streamingState.live ? "destructive" : "default"}
       >
-        {streaming ? "End" : "Start"} Stream
+        {streamingState.live ? "End" : "Start"} Stream
       </Button>
     {/if}
   </footer>

@@ -4,15 +4,16 @@
 
   type Props = {
     class?: string;
-    right?: Snippet;
-    sidebar?: Snippet;
     children: Snippet;
+    sidebarLeft?: Snippet;
+    sidebarRight?: Snippet;
     collapsible?: "offcanvas" | "none";
   };
 
   let {
-    sidebar,
     children,
+    sidebarLeft,
+    sidebarRight,
     class: classList = "",
     collapsible = "offcanvas",
   }: Props = $props();
@@ -20,7 +21,7 @@
 
 <Sidebar.Provider style="--sidebar-width: 19rem;">
   <Sidebar.Root {collapsible} variant="floating">
-    {@render sidebar?.()}
+    {@render sidebarLeft?.()}
   </Sidebar.Root>
   <Sidebar.Inset>
     {#if collapsible === "offcanvas"}
@@ -32,4 +33,14 @@
       {@render children()}
     </div>
   </Sidebar.Inset>
+  {#if sidebarRight}
+    <Sidebar.Root
+      {collapsible}
+      side="right"
+      variant="floating"
+      style="--sidebar-width: 30rem;"
+    >
+      {@render sidebarRight()}
+    </Sidebar.Root>
+  {/if}
 </Sidebar.Provider>
