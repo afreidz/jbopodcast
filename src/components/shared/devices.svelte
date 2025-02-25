@@ -86,7 +86,6 @@
       audio: {
         noiseSuppression,
         deviceId: microphone,
-        echoCancellation: true,
         sampleRate: { ideal: 96000, min: 44100 },
       },
       video: {
