@@ -15,42 +15,43 @@
   import { parseAbsoluteToLocal } from "@internationalized/date";
   import ConfigureScenes from "$/components/calls/scenes.svelte";
   import { Button, buttonVariants } from "$/components/ui/button";
-  import CallFormState, { timeslots } from "./state/callForm.state.svelte";
+  // import CallFormState, { timeslots } from "./state/callForm.state.svelte";
 
-  const callForm = new CallFormState(getCurrentUser());
+  // const callForm = new CallFormState(getCurrentUser());
 
   type Props = {
     id?: string;
   };
 
   onMount(async () => {
-    await callForm.init(id);
+    // await callForm.init(id);
   });
 
   let { id }: Props = $props();
   let timeslotContainer = $state<HTMLElement | null>(null);
 
-  let timeLabel = $derived(
-    callForm.scheduled.toLocaleTimeString("en-US", {
-      hour12: true,
-      hour: "numeric",
-      minute: "2-digit",
-    })
-  );
+  // let timeLabel = $derived(
+  //   callForm.scheduled.toLocaleTimeString("en-US", {
+  //     hour12: true,
+  //     hour: "numeric",
+  //     minute: "2-digit",
+  //   })
+  // );
 
-  $effect(() => {
-    if (!timeslotContainer || !timeLabel) return;
-    const elm = timeslotContainer.querySelector(`[data-value="${timeLabel}"]`);
-    if (elm) elm.scrollIntoView({ behavior: "smooth" });
-  });
+  // $effect(() => {
+  //   if (!timeslotContainer || !timeLabel) return;
+  //   const elm = timeslotContainer.querySelector(`[data-value="${timeLabel}"]`);
+  //   if (elm) elm.scrollIntoView({ behavior: "smooth" });
+  // });
 
   async function handeSubmit(e: SubmitEvent) {
     e.preventDefault();
-    const success = await callForm.submit();
-    if (success) return navigate("/insider/dashboard");
+    // const success = await callForm.submit();
+    // if (success) return navigate("/insider/dashboard");
   }
 </script>
 
+<!--
 <Sidebar class="mx-auto grid max-w-screen-xl gap-4 p-4">
   {#snippet sidebarLeft()}
     <Nav />
@@ -161,4 +162,4 @@
       <Button type="submit">Create Call</Button>
     </footer>
   </form>
-</Sidebar>
+</Sidebar> -->
