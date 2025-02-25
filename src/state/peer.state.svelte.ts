@@ -1,35 +1,35 @@
 import { actions } from "astro:actions";
 import client from "$/lib/pocketbase/client";
+import type { Member } from "$/actions/members";
 import type { Connection } from "$/actions/connection";
-
-export const MIN_VIDEO_BITRATE = 2000;
-export const MAX_VIDEO_BITRATE = 10000;
-export const START_VIDEO_BITRATE = 6000;
+import RemoteStreamState from "$/state/remote.stream.state.svelte";
+import type LocalStreamState from "$/state/local.stream.state.svelte";
 
 export default class PeerConnection {
-  protected ice: RTCIceCandidate[] = [];
-  protected localStream: MediaStream;
   protected rtc: RTCPeerConnection;
+  protected ice: RTCIceCandidate[] = [];
+  public remoteState: RemoteStreamState;
+  protected localStreamState: LocalStreamState;
 
-  public remoteStream: MediaStream | null = $state(null);
+  public peer: Member;
   public callId: string;
-  public peerId: string;
   public userId: string;
 
   constructor(
-    peerId: string,
+    peer: Member,
     callId: string,
     userId: string,
-    stream: MediaStream
+    localStreamState: LocalStreamState
   ) {
-    this.rtc = new RTCPeerConnection();
-    this.localStream = stream;
-    this.peerId = peerId;
+    this.peer = peer;
     this.callId = callId;
     this.userId = userId;
+    this.rtc = new RTCPeerConnection();
+    this.localStreamState = localStreamState;
+    this.remoteState = new RemoteStreamState(this.peer);
 
-    this.localStream.getTracks().forEach((t) => {
-      this.rtc.addTrack(t, this.localStream);
+    this.localStreamState.stream!.getTracks().forEach((t) => {
+      this.rtc.addTrack(t, this.localStreamState.stream!);
     });
 
     this.rtc.addEventListener("icecandidate", (c) => {
@@ -38,7 +38,7 @@ export default class PeerConnection {
 
     this.rtc.addEventListener("track", ({ streams }) => {
       if (streams[0]) {
-        this.remoteStream = streams[0];
+        this.remoteState.connectStream(streams[0]);
       }
     });
 
@@ -46,7 +46,7 @@ export default class PeerConnection {
       if (
         e.action === "update" &&
         e.record.call === this.callId &&
-        e.record.from === this.peerId &&
+        e.record.from === this.peer.id &&
         e.record.to === this.userId &&
         e.record.offer &&
         !e.record.answer
@@ -56,7 +56,7 @@ export default class PeerConnection {
       } else if (
         e.action === "update" &&
         e.record.call === this.callId &&
-        e.record.to === this.peerId &&
+        e.record.to === this.peer.id &&
         e.record.from === this.userId &&
         e.record.answer
       ) {
@@ -66,7 +66,7 @@ export default class PeerConnection {
         e.action === "create" &&
         e.record.call === this.callId &&
         e.record.to === this.userId &&
-        e.record.from === this.peerId &&
+        e.record.from === this.peer.id &&
         e.record.offer
       ) {
         console.log("Peer made a new offer. Answering new offer.");
@@ -79,10 +79,12 @@ export default class PeerConnection {
     const request = (
       await actions.connections.find({
         to: this.userId,
-        from: this.peerId,
         call: this.callId,
+        from: this.peer.id,
       })
     ).data;
+
+    console.log("Existing from", this.peer.name, "To", this.userId, !!request);
 
     return request ? await this.answerOffer(request) : await this.createOffer();
   }
@@ -104,7 +106,7 @@ export default class PeerConnection {
     await actions.connections.offerToPeer({
       offer,
       ice: this.ice,
-      to: this.peerId,
+      to: this.peer.id,
       from: this.userId,
       call: this.callId,
     });

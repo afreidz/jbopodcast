@@ -1,28 +1,27 @@
 <script lang="ts">
   import { Badge } from "$/components/ui/badge";
-  import type { Member } from "$/actions/members";
   import Avatar from "$/components/shared/avatar.svelte";
+  import type LocalStreamState from "$/state/local.stream.state.svelte";
+  import type RemoteStreamState from "$/state/remote.stream.state.svelte";
 
   type Props = {
-    member: Member;
     class?: string;
     style?: string;
     muted?: boolean;
-    stream?: MediaStream | null;
+    state: LocalStreamState | RemoteStreamState;
   };
 
   let {
-    member,
     style = "",
     muted = false,
-    stream = null,
+    state: streamState,
     class: classList = "",
   }: Props = $props();
 
   let video: HTMLVideoElement | null = $state(null);
 
   $effect(() => {
-    if (video && stream) video.srcObject = stream;
+    if (video && streamState.stream) video.srcObject = streamState.stream;
   });
 </script>
 
@@ -35,14 +34,19 @@
       autoplay
       playsinline
       bind:this={video}
-      class:hidden={!stream}
+      class:hidden={!streamState.stream}
       class="h-full aspect-video object-cover flex-none"
     ></video>
     <Badge class="absolute bottom-5 right-5 pointer-events-none"
-      >{member.handle || member.name || member.email}</Badge
+      >{streamState.member.handle ||
+        streamState.member.name ||
+        streamState.member.email}</Badge
     >
-    {#if !stream}
-      <Avatar name={member.name || member.email} email={member.email} />
+    {#if !streamState.stream}
+      <Avatar
+        email={streamState.member.email}
+        name={streamState.member.name || streamState.member.email}
+      />
     {/if}
   </div>
 </div>

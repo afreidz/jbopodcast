@@ -6,10 +6,11 @@
   import * as Dialog from "$/components/ui/dialog";
   import * as Select from "$/components/ui/select";
   import Label from "$/components/ui/label/label.svelte";
-  import { Fullscreen } from "lucide-svelte";
+  import { getCurrentUser } from "$/lib/pocketbase/client";
+  import LocalStreamState from "$/state/local.stream.state.svelte";
 
   type Props = {
-    stream?: MediaStream;
+    state?: LocalStreamState;
   };
 
   let shown = $state(false);
@@ -21,7 +22,7 @@
     !!localStorage.getItem("noiseSuppression")
   );
 
-  let { stream = $bindable() }: Props = $props();
+  let { state: localStreamState = $bindable() }: Props = $props();
 
   onMount(async () => {
     if (!permission) {
@@ -52,7 +53,7 @@
   });
 
   $effect(() => {
-    shown = !stream;
+    shown = !localStreamState;
   });
 
   let camera: string | undefined = $state(
@@ -82,18 +83,21 @@
   async function updateStream(e?: SubmitEvent) {
     e?.preventDefault();
     if (!camera || !microphone) return toast.error("Unable to set mic/camera");
-    stream = await navigator.mediaDevices.getUserMedia({
+    const baseStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         noiseSuppression,
         deviceId: microphone,
-        sampleRate: { ideal: 96000, min: 44100 },
+        autoGainControl: false,
+        channelCount: { ideal: 2 },
+        sampleRate: { min: 44100 },
       },
       video: {
         deviceId: camera,
+        width: { min: 1920 },
         frameRate: { ideal: 30, min: 20 },
-        width: { ideal: 2160, min: 1920 },
       },
     });
+    localStreamState = new LocalStreamState(getCurrentUser(), baseStream);
   }
 </script>
 

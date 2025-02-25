@@ -2,10 +2,17 @@
 export const prerender = false;
 import Layout from "$/layouts/Insider.astro";
 import Call from "$/components/calls/join.svelte";
+import { actions } from "astro:actions";
 
 if (!Astro.params.id) return Astro.redirect("/404");
+
+const resp = await Astro.callAction(actions.calls.getById, Astro.params.id);
+
+if (resp.error || !resp.data) return Astro.redirect("/404");
+
+const call = resp.data;
 ---
 
 <Layout>
-  <Call client:only="svelte" call={Astro.params.id} />
+  <Call client:only="svelte" call={call} />
 </Layout>

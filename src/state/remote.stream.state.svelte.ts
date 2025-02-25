@@ -1,31 +1,42 @@
-export default class AudioAnalyzer {
-  private animationFrameId?: number;
+import type { Member } from "$/actions/members";
+
+export class BaseStreamState {
+  public member: Member;
+
+  protected animationFrameId?: number;
   protected analyser: AnalyserNode;
   protected bufferLength: number;
+  protected gainNode: GainNode;
   protected ac: AudioContext;
 
   protected _percentage: number = $state(0);
   protected _decibels: number = $state(-60);
+  protected _stream: MediaStream | null = $state(null);
   protected _level: "peaked" | "loud" | "normal" = $state("normal");
 
-  constructor() {
+  constructor(member: Member, stream?: MediaStream) {
+    this.member = member;
+
     this.ac = new AudioContext();
     this.analyser = this.ac.createAnalyser();
+    this.gainNode = this.ac.createGain();
 
     this.analyser.fftSize = 2048;
     this.analyser.maxDecibels = -0;
     this.analyser.minDecibels = -60;
     this.analyser.smoothingTimeConstant = 0.5;
-
     this.bufferLength = this.analyser.frequencyBinCount;
+
+    if (stream) this.connectStream(stream);
   }
 
-  init(stream: MediaStream) {
-    this.stop();
-
+  connectStream(stream: MediaStream) {
     const source = this.ac.createMediaStreamSource(stream);
-    source.connect(this.analyser);
+    source.connect(this.gainNode);
+    this.gainNode.connect(this.analyser);
     this.animationFrameId = window.requestAnimationFrame(() => this.update());
+
+    this._stream = stream;
   }
 
   get level() {
@@ -38,6 +49,10 @@ export default class AudioAnalyzer {
 
   get percentage() {
     return this._percentage;
+  }
+
+  get stream() {
+    return this._stream;
   }
 
   stop() {
@@ -67,7 +82,10 @@ export default class AudioAnalyzer {
     } else {
       this._level = "normal";
     }
-
     this.animationFrameId = window.requestAnimationFrame(() => this.update());
   }
+}
+
+export default class RemoteStreamState extends BaseStreamState {
+  public type: "remote" = "remote";
 }
