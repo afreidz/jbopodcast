@@ -5,6 +5,14 @@ import type { Connection } from "$/actions/connection";
 import RemoteStreamState from "$/state/remote.stream.state.svelte";
 import type LocalStreamState from "$/state/local.stream.state.svelte";
 
+const iceConfiguration = {
+  iceServers: [
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+  ],
+};
+
 export default class PeerConnection {
   protected rtc: RTCPeerConnection;
   protected ice: RTCIceCandidate[] = [];
@@ -24,7 +32,7 @@ export default class PeerConnection {
     this.peer = peer;
     this.callId = callId;
     this.userId = userId;
-    this.rtc = new RTCPeerConnection();
+    this.rtc = new RTCPeerConnection(iceConfiguration);
     this.localStreamState = localStreamState;
     this.remoteState = new RemoteStreamState(this.peer);
 
