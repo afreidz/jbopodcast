@@ -7,9 +7,7 @@ import ffmpeg from "fluent-ffmpeg";
 import LoadConfig from "home-config";
 import { PassThrough } from "stream";
 import CONFIG_FILE from "./configPath";
-import ffmpegPath from "ffmpeg-static";
 import { WebSocketServer, WebSocket } from "ws";
-if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
 
 const config = LoadConfig.load(CONFIG_FILE, {
   SOCKET: {
@@ -45,6 +43,8 @@ export default class RelaySocket extends EventEmitter {
         message: `HTTPS server started ${config.SOCKET.HOST}:${config.SOCKET.PORT}`,
       });
     });
+
+    ffmpeg.setFfmpegPath(path.join("./", "ffmpeg"));
   }
 
   start() {
@@ -94,6 +94,7 @@ export default class RelaySocket extends EventEmitter {
         .inputFormat(config.STREAM.INPUT_VIDEO_FORMAT)
         .videoCodec(config.STREAM.OUTPUT_VIDEO_CODEC)
         .audioCodec(config.STREAM.OUTPUT_AUDIO_CODEC)
+        .size("1920x1080")
         .format("flv")
         .output(destinations[0]);
       destinations.shift();

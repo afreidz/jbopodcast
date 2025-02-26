@@ -6,12 +6,15 @@
     "pkg": "pkg .",
     "clean": "rimraf ./dist",
     "compile": "tsc -p tsconfig.json",
-    "cpy": "cpy ./cert/**/* ./dist/cert",
     "move": "cpy ./dist/relaycast /usr/local/bin",
-    "build": "npm run clean && npm run compile && npm run cpy && npm run pkg && npm run move"
+    "build": "npm run clean && npm run compile && npm run cpy && npm run pkg && npm run move",
+    "cpy": "cpy ./cert/**/* ./dist/cert && cp ../node_modules/ffmpeg-static/ffmpeg ./dist/ffmpeg"
   },
   "pkg": {
-    "assets": "./dist/cert/**/*",
+    "assets": [
+      "./dist/cert/**/*",
+      "./dist/ffmpeg"
+    ],
     "targets": [
       "node-latest-macos-arm64"
     ],

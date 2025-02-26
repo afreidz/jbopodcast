@@ -6,7 +6,6 @@ import CONFIG_FILE from "./configPath";
 import SysTray, { Menu, MenuItem } from "systray";
 
 const relay = new RelaySocket();
-const EDITOR = process.env.EDITOR || "nano";
 
 relay.on("message", ({ event, message }) => {
   console.log(message);
@@ -56,7 +55,7 @@ const tray = new SysTray({
 
 tray.onClick(async (action) => {
   if (action.item.title === configureItem.title) {
-    spawn(EDITOR, [CONFIG_FILE], {
+    spawn("open", [CONFIG_FILE], {
       stdio: "inherit",
     });
   } else if (action.item.title === quitItem.title) {
