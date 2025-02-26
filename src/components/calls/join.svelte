@@ -7,11 +7,11 @@
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import Devices from "$/components/shared/devices.svelte";
+  import Countdown from "$/components/calls/countdown.svelte";
   import RemoteStreamState from "$/state/remote.stream.state.svelte";
   import CallConnectionState from "$/state/call.connect.state.svelte";
   import StreamMonitor from "$/components/calls/streamMonitor.svelte";
   import type LocalStreamState from "$/state/local.stream.state.svelte";
-  import Countdown from "./countdown.svelte";
 
   type Props = {
     call: Call;
@@ -28,6 +28,7 @@
       connection = new CallConnectionState(call, localStreamState);
     }
   });
+  $inspect(connection);
 </script>
 
 <svelte:window onbeforeunload={async () => await connection?.disconnect()} />
@@ -36,7 +37,7 @@
   peer: Member | null | undefined,
   area: "A" | "B" | "C" | "D"
 )}
-  {#if peer?.id === currentUser.id && localStreamState}
+  {#if peer?.id === currentUser?.id && localStreamState}
     <Feed muted state={localStreamState} style="grid-area: {area};" />
   {:else if peer}
     {@const c = connection?.connections.find((s) => s.peer.id === peer.id)}
@@ -49,7 +50,7 @@
 {#snippet Overflow(streams: (LocalStreamState | RemoteStreamState)[])}
   <div class="flex flex-col justify-evenly" style="grid-area: B">
     {#each streams as stream}
-      {#if stream.member.id === currentUser.id && localStreamState}
+      {#if stream.member.id === currentUser?.id && localStreamState}
         <Feed muted class="aspect-square" state={localStreamState} />
       {:else}
         <Feed state={stream} class="aspect-square" />
@@ -93,7 +94,7 @@
 
           {@render MainFeed(connection.activeScene.expand?.A, "A")}
 
-          {#if connection.activeScene.A === currentUser.id}
+          {#if connection.activeScene.A === currentUser!.id}
             {@render Overflow(others)}
           {:else if localStreamState}
             {@render Overflow([...others, localStreamState])}

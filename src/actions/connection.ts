@@ -10,8 +10,8 @@ export const offerToPeer = defineAction({
     to: z.string(),
     call: z.string(),
     from: z.string(),
-    ice: z.any().optional(),
     offer: z.any().optional(),
+    fromIce: z.any().optional(),
   }),
   async handler(input, context) {
     const client = await impersonate(context.cookies);
@@ -30,24 +30,24 @@ export const offerToPeer = defineAction({
       .catch(() => null);
 
     if (existing) {
-      return await client.collection("connections").update(
+      return await client.collection("connections").update<Connection>(
         existing.id,
         {
           answer: null,
-          ice: input.ice,
           offer: input.offer,
+          from_ice_candidates: input.fromIce,
         },
         { expand }
       );
     }
 
-    return await client.collection("connections").create(
+    return await client.collection("connections").create<Connection>(
       {
         to: input.to,
-        ice: input.ice,
         call: input.call,
         from: input.from,
         offer: input.offer,
+        from_ice_candidates: input.fromIce,
       },
       { expand }
     );
@@ -99,9 +99,10 @@ export const getOffers = defineAction({
 export const updateConnection = defineAction({
   input: z.object({
     id: z.string(),
-    ice: z.any().optional(),
+    toIce: z.any().optional(),
     offer: z.any().optional(),
     answer: z.any().optional(),
+    fromIce: z.any().optional(),
   }),
   async handler(input, context) {
     const client = await impersonate(context.cookies);
@@ -109,9 +110,10 @@ export const updateConnection = defineAction({
     return await client.collection("connections").update(
       input.id,
       {
-        ice: input.ice,
         offer: input.offer,
         answer: input.answer,
+        to_ice_candidates: input.toIce,
+        from_ice_candidates: input.fromIce,
       },
       { expand }
     );

@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { Icon } from "lucide-svelte";
+  import { Button } from "$/components/ui/button";
   import User from "$/components/shared/user.svelte";
 
+  import AddIcon from "lucide-svelte/icons/plus";
   import CallsIcon from "lucide-svelte/icons/phone";
   import MainIcon from "lucide-svelte/icons/podcast";
   import MembersIcon from "lucide-svelte/icons/users";
@@ -10,10 +12,14 @@
 
 {#snippet navItem(href: string, label: string, icon: typeof Icon)}
   {@const Icon = icon}
-  <a class="p-6 border-t last-of-type:border-b flex gap-4 items-center" {href}>
-    <Icon class="size-4" />
-    <span>{label}</span>
-  </a>
+  <div class="px-6 border-t last-of-type:border-b flex gap-4 items-center">
+    <a {href} class="contents">
+      <Icon class="size-4 flex-none" />
+      <span class="flex-1 h-full py-6 flex items-center">{label}</span>
+    </a>
+    <Button variant="ghost" href={`${href}/new`} size="icon"><AddIcon /></Button
+    >
+  </div>
 {/snippet}
 
 <nav class="flex-1 flex flex-col">
@@ -30,7 +36,7 @@
   </a>
   <div class="flex-1 flex flex-col">
     {@render navItem("/insider/episodes", "Episodes", EpisodeIcon)}
-    {@render navItem("/insider/calls/new", "Calls", CallsIcon)}
+    {@render navItem("/insider/calls", "Calls", CallsIcon)}
     {@render navItem("/insider/members", "Members", MembersIcon)}
   </div>
   <footer class="p-1 border-t">

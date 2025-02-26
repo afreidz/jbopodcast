@@ -13,11 +13,10 @@ export type CurrentUser = {
 
 export function getCurrentUser() {
   if (!pb.authStore.isValid) {
-    window.location.href = "/insider/signin";
-    return null as unknown as CurrentUser;
+    throw new Error("no current user");
   }
 
-  const user = pb.authStore.record!
+  const user = pb.authStore.record!;
   return user as unknown as CurrentUser;
 }
 

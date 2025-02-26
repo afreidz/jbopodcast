@@ -6,6 +6,7 @@ import type {
 
 import { z } from "astro:schema";
 import { defineAction } from "astro:actions";
+import type { ListResult } from "pocketbase";
 import { ScenesTypeOptions } from "@pocketbase/types";
 import { queryBuilder, query, impersonate } from "$/lib/pocketbase/server";
 
@@ -93,6 +94,22 @@ export const getById = defineAction({
   },
 });
 
+export const list = defineAction({
+  input: z.object({
+    page: z.number().min(1),
+    per: z.number().min(1),
+    filter: z.string().optional(),
+  }),
+  async handler({ page, per, filter }, context) {
+    const client = await impersonate(context.cookies);
+    return await client.collection("calls").getList<Call>(page, per, {
+      filter,
+      expand,
+      sort: "scheduled",
+    });
+  },
+});
+
 export const setActiveScene = defineAction({
   input: z.object({
     call: z.string(),
@@ -119,3 +136,5 @@ export type Call = CallsResponse<{
   activeScene: Scene;
   guests: UsersRecord[];
 }>;
+
+export type PaginatedCalls = ListResult<Call>;

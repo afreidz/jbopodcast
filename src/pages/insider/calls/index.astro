@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import { actions } from "astro:actions";
+import Layout from "$/layouts/Insider.astro";
+import CallList from "$/components/calls/list.svelte";
+
+const resp = await Astro.callAction(actions.calls.list, { page: 1, per: 50 });
+if (resp.error || !resp.data) return Astro.redirect("/404");
+
+const calls = resp.data;
+---
+
+<Layout>
+  <CallList client:load {calls} />
+</Layout>
