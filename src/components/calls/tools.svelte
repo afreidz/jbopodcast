@@ -14,10 +14,10 @@
   import Avatar from "$/components/shared/avatar.svelte";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import { ScrollArea } from "$/components/ui/scroll-area";
+  import SettingsIcon from "lucide-svelte/icons/mic-vocal";
   import Button from "$/components/ui/button/button.svelte";
   import MicFilters from "$/components/calls/micFilters.svelte";
   import Participant from "$/components/calls/participant.svelte";
-  import SettingsIcon from "lucide-svelte/icons/sliders-horizontal";
   import CallConnectionState from "$/state/call.connect.state.svelte";
 
   type Props = {

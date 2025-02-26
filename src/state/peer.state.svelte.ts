@@ -84,8 +84,6 @@ export default class PeerConnection {
       })
     ).data;
 
-    console.log("Existing from", this.peer.name, "To", this.userId, !!request);
-
     return request ? await this.answerOffer(request) : await this.createOffer();
   }
 

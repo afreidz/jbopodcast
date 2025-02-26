@@ -21,7 +21,10 @@
   let video: HTMLVideoElement | null = $state(null);
 
   $effect(() => {
-    if (video && streamState.stream) video.srcObject = streamState.stream;
+    if (video && streamState.stream) {
+      video.srcObject = streamState.stream;
+      video.oncanplay = () => video?.play();
+    }
   });
 </script>
 
