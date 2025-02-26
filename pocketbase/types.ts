@@ -103,15 +103,16 @@ export type CallsRecord = {
 	updated?: IsoDateString
 }
 
-export type ConnectionsRecord<Tanswer = unknown, Tice = unknown, Toffer = unknown> = {
+export type ConnectionsRecord<Tanswer = unknown, Tfrom_ice_candidates = unknown, Toffer = unknown, Tto_ice_candidates = unknown> = {
 	answer?: null | Tanswer
 	call: RecordIdString
 	created?: IsoDateString
 	from: RecordIdString
-	ice?: null | Tice
+	from_ice_candidates?: null | Tfrom_ice_candidates
 	id: string
 	offer?: null | Toffer
 	to: RecordIdString
+	to_ice_candidates?: null | Tto_ice_candidates
 	updated?: IsoDateString
 }
 
@@ -165,7 +166,7 @@ export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemF
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type CallsResponse<Texpand = unknown> = Required<CallsRecord> & BaseSystemFields<Texpand>
-export type ConnectionsResponse<Tanswer = unknown, Tice = unknown, Toffer = unknown, Texpand = unknown> = Required<ConnectionsRecord<Tanswer, Tice, Toffer>> & BaseSystemFields<Texpand>
+export type ConnectionsResponse<Tanswer = unknown, Tfrom_ice_candidates = unknown, Toffer = unknown, Tto_ice_candidates = unknown, Texpand = unknown> = Required<ConnectionsRecord<Tanswer, Tfrom_ice_candidates, Toffer, Tto_ice_candidates>> & BaseSystemFields<Texpand>
 export type ScenesResponse<Texpand = unknown> = Required<ScenesRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 

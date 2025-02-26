@@ -27,12 +27,14 @@ const cfg = {
 export default class PeerConnection {
   protected rtc: RTCPeerConnection;
   protected ice: RTCIceCandidate[] = [];
-  public remoteState: RemoteStreamState;
   protected localStreamState: LocalStreamState;
+  protected type: "offered" | "answered" | null = null;
+  protected connectionRecord: Connection | undefined = undefined;
 
   public peer: Member;
   public callId: string;
   public userId: string;
+  public remoteState: RemoteStreamState;
 
   constructor(
     peer: Member,
@@ -52,7 +54,7 @@ export default class PeerConnection {
     });
 
     this.rtc.addEventListener("icecandidate", (c) => {
-      console.log("Recieved Ice Candidate");
+      console.log("Found Ice Candidate");
       if (c.candidate) this.ice.push(c.candidate);
     });
 
@@ -63,26 +65,56 @@ export default class PeerConnection {
       }
     });
 
+    this.rtc.addEventListener("icegatheringstatechange", async () => {
+      if (this.rtc.iceGatheringState === "complete") {
+        if (this.type === null || !this.connectionRecord) return;
+        if (this.type === "offered") {
+          await actions.connections.updateConnection({
+            id: this.connectionRecord.id,
+            fromIce: this.ice,
+          });
+        } else if (this.type === "answered") {
+          await actions.connections.updateConnection({
+            id: this.connectionRecord.id,
+            toIce: this.ice,
+          });
+        }
+      }
+    });
+
     client.collection("connections").subscribe("*", async (e) => {
       if (
         e.action === "update" &&
         e.record.call === this.callId &&
         e.record.from === this.peer.id &&
-        e.record.to === this.userId &&
-        e.record.offer &&
-        !e.record.answer
+        e.record.to === this.userId
       ) {
-        console.log("Peer made an offer. Answering offer.");
-        await this.answerOffer(e.record);
+        console.log("Update from a peer initiated offer");
+
+        if (e.record.from_ice_candidates) {
+          console.log("Adding remote ice candidates");
+          const candidates = e.record.from_ice_candidates as RTCIceCandidate[];
+          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
+        }
+
+        if (e.record.offer && !e.record.answer)
+          await this.answerOffer(e.record);
       } else if (
         e.action === "update" &&
         e.record.call === this.callId &&
         e.record.to === this.peer.id &&
-        e.record.from === this.userId &&
-        e.record.answer
+        e.record.from === this.userId
       ) {
-        console.log("Peer answered offer. Establishing Connection.");
-        await this.setAnswer(e.record.answer as RTCSessionDescription);
+        console.log("Update from a self initiated offer");
+
+        if (e.record.to_ice_candidates) {
+          console.log("Adding remote ice candidates");
+          const candidates = e.record.to_ice_candidates as RTCIceCandidate[];
+          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
+        }
+
+        if (e.record.answer)
+          await this.setAnswer(e.record.answer as RTCSessionDescription);
       } else if (
         e.action === "create" &&
         e.record.call === this.callId &&
@@ -91,6 +123,13 @@ export default class PeerConnection {
         e.record.offer
       ) {
         console.log("Peer made a new offer. Answering new offer.");
+
+        if (e.record.from_ice_candidates) {
+          console.log("Adding remote ice candidates");
+          const candidates = e.record.from_ice_candidates as RTCIceCandidate[];
+          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
+        }
+
         await this.answerOffer(e.record);
       }
     });
@@ -110,6 +149,7 @@ export default class PeerConnection {
 
   protected async createOffer() {
     console.log("Creating offer to", this.peer.id);
+    this.type = "offered";
 
     const offer = await this.rtc
       .createOffer({
@@ -121,46 +161,50 @@ export default class PeerConnection {
         return null;
       });
 
-    if (offer)
-      await this.rtc.setLocalDescription(offer).catch((err) => {
-        console.error(err);
-      });
+    if (offer) await this.rtc.setLocalDescription(offer);
 
-    this.rtc.restartIce();
-    console.log("starting ice...");
+    // await new Promise((r) => {
+    //   this.rtc.addEventListener("icegatheringstatechange", () => {
+    //     if (this.rtc.iceGatheringState === "complete") r(true);
+    //   });
+    // });
 
-    await new Promise((r) => {
-      this.rtc.addEventListener("icegatheringstatechange", () => {
-        if (this.rtc.iceGatheringState === "complete") r(true);
-      });
-    });
+    // console.log("ice complete");
 
-    console.log("ice complete");
-
-    await actions.connections.offerToPeer({
-      offer,
-      ice: this.ice,
-      to: this.peer.id,
-      from: this.userId,
-      call: this.callId,
-    });
+    this.connectionRecord = (
+      await actions.connections.offerToPeer({
+        offer,
+        to: this.peer.id,
+        from: this.userId,
+        call: this.callId,
+      })
+    ).data;
   }
 
   protected async answerOffer(connection: Connection) {
     if (!connection.offer) throw new Error("No offer to answer");
+    console.log("Answering peer offer");
+    this.type = "answered";
+    this.connectionRecord = connection;
 
     await this.rtc.setRemoteDescription(
       connection.offer as RTCSessionDescriptionInit
     );
 
-    const candidates = connection.ice as RTCIceCandidate[];
-    await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
+    if (connection.from_ice_candidates) {
+      await Promise.all(
+        (connection.from_ice_candidates as RTCIceCandidate[]).map((c) =>
+          this.rtc.addIceCandidate(c)
+        )
+      );
+    }
 
     const answer = await this.rtc.createAnswer();
     await this.rtc.setLocalDescription(answer);
 
     await actions.connections.updateConnection({
       answer,
+      toIce: this.ice,
       id: connection.id,
     });
   }
