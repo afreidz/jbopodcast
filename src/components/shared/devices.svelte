@@ -93,11 +93,11 @@
       },
       video: {
         deviceId: camera,
-        width: { min: 1920 },
+        width: { ideal: 1920 },
         frameRate: { ideal: 30, min: 20 },
       },
     });
-    localStreamState = new LocalStreamState(getCurrentUser(), baseStream);
+    localStreamState = new LocalStreamState(getCurrentUser()!, baseStream);
   }
 </script>
 
