@@ -4,6 +4,7 @@
   import type { Member } from "$/actions/members";
   import Feed from "$/components/calls/feed.svelte";
   import Tools from "$/components/calls/tools.svelte";
+  import * as Terminal from "$/components/ui/terminal";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import Devices from "$/components/shared/devices.svelte";
@@ -22,6 +23,11 @@
   let stage: HTMLElement | undefined = $state(undefined);
   let connection: CallConnectionState | null = $state(null);
   let localStreamState: LocalStreamState | undefined = $state(undefined);
+
+  let ready = $derived.by(() => {
+    if (!connection) return false;
+    return connection.connections.every((c) => c.ready);
+  });
 
   $effect(() => {
     if (localStreamState?.stream && !connection) {
@@ -75,12 +81,12 @@
 
 {#if connection}
   <Sidebar
-    {sidebarLeft}
     collapsible="offcanvas"
+    sidebarLeft={ready ? sidebarLeft : undefined}
     class="size-full flex items-center justify-center"
-    sidebarRight={connection.live ? sidebarRight : undefined}
+    sidebarRight={connection.live && ready ? sidebarRight : undefined}
   >
-    {#if connection.activeScene}
+    {#if connection.activeScene && ready}
       <main
         bind:this={stage}
         class:opacity-0={connection.switchingScenes}
@@ -110,6 +116,22 @@
           {@render MainFeed(connection.activeScene?.expand?.D, "D")}
         {/if}
       </main>
+    {:else}
+      <Terminal.Loop>
+        <Terminal.Root class="m-6 max-w-xl" delay={250}>
+          <Terminal.TypingAnimation
+            >&gt; Initializing call</Terminal.TypingAnimation
+          >
+          <Terminal.Loading delay={5000}>
+            {#snippet loadingMessage()}
+              Establishing connection to peers
+            {/snippet}
+            {#snippet completeMessage()}
+              <span class="text-green-500">✔</span>
+            {/snippet}
+          </Terminal.Loading>
+        </Terminal.Root>
+      </Terminal.Loop>
     {/if}
   </Sidebar>
 {/if}

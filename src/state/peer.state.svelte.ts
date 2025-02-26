@@ -36,6 +36,8 @@ export default class PeerConnection {
   public userId: string;
   public remoteState: RemoteStreamState;
 
+  protected _ready: boolean = $state(false);
+
   constructor(
     peer: Member,
     callId: string,
@@ -54,13 +56,11 @@ export default class PeerConnection {
     });
 
     this.rtc.addEventListener("icecandidate", (c) => {
-      console.log("Found Ice Candidate");
       if (c.candidate) this.ice.push(c.candidate);
     });
 
     this.rtc.addEventListener("track", ({ streams }) => {
       if (streams[0]) {
-        console.log("Recieved media stream from remote");
         this.remoteState.connectStream(streams[0]);
       }
     });
@@ -79,6 +79,7 @@ export default class PeerConnection {
             toIce: this.ice,
           });
         }
+        this._ready = true;
       }
     });
 
@@ -135,6 +136,10 @@ export default class PeerConnection {
     });
   }
 
+  get ready() {
+    return this._ready;
+  }
+
   public async connect() {
     const request = (
       await actions.connections.find({
@@ -162,14 +167,6 @@ export default class PeerConnection {
       });
 
     if (offer) await this.rtc.setLocalDescription(offer);
-
-    // await new Promise((r) => {
-    //   this.rtc.addEventListener("icegatheringstatechange", () => {
-    //     if (this.rtc.iceGatheringState === "complete") r(true);
-    //   });
-    // });
-
-    // console.log("ice complete");
 
     this.connectionRecord = (
       await actions.connections.offerToPeer({

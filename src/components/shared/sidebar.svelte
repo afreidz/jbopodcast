@@ -20,9 +20,11 @@
 </script>
 
 <Sidebar.Provider style="--sidebar-width: 19rem;">
-  <Sidebar.Root {collapsible} variant="floating">
-    {@render sidebarLeft?.()}
-  </Sidebar.Root>
+  {#if sidebarLeft}
+    <Sidebar.Root {collapsible} variant="floating">
+      {@render sidebarLeft()}
+    </Sidebar.Root>
+  {/if}
   <Sidebar.Inset>
     {#if collapsible === "offcanvas"}
       <header class="flex h-16 shrink-0 items-center gap-2 px-4">
