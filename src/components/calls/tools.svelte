@@ -11,23 +11,29 @@
 
   import type { Member } from "$/actions/members";
   import MemberIcon from "lucide-svelte/icons/user";
+  import Feed from "$/components/calls/feed.svelte";
   import Avatar from "$/components/shared/avatar.svelte";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import SettingsIcon from "lucide-svelte/icons/mic-vocal";
   import Button from "$/components/ui/button/button.svelte";
   import MicFilters from "$/components/calls/micFilters.svelte";
-  import Participant from "$/components/calls/participant.svelte";
   import CallConnectionState from "$/state/call.connect.state.svelte";
 
   type Props = {
     class?: string;
+    stage?: HTMLElement;
     state: CallConnectionState;
   };
 
   let currentUser = getCurrentUser();
   let micFiltersShown: boolean = $state(false);
-  let { class: classList = "", state: connectionState }: Props = $props();
+  let {
+    class: classList = "",
+    state: connectionState,
+    stage = $bindable(),
+  }: Props = $props();
+
   let isHosting = $derived(connectionState.call.host === currentUser.id);
 </script>
 
@@ -90,10 +96,30 @@
   {/if}
   <strong>Participant Audio</strong>
   <ScrollArea class="w-full flex-1">
-    <Participant state={connectionState.localStreamState} />
+    <div class="w-full aspect-video mb-2">
+      <Feed
+        muted
+        hideVideo
+        hideBadge
+        showAnalyzser
+        class="size-full"
+        largeBorder={false}
+        state={connectionState.localStreamState}
+      />
+    </div>
     {#each connectionState.connections as connection}
       {#key connection.peer.id}
-        <Participant state={connection.remoteState} />
+        <div class="w-full aspect-video mb-2">
+          <Feed
+            muted
+            hideBadge
+            hideVideo
+            showAnalyzser
+            class="size-full"
+            largeBorder={false}
+            state={connection.remoteState}
+          />
+        </div>
       {/key}
     {/each}
   </ScrollArea>
@@ -105,11 +131,16 @@
     >
       <SettingsIcon />
     </Button>
-    {#if connectionState.ready && isHosting}
+    {#if isHosting && stage}
       <Button
         class="flex-1"
         disabled={connectionState.loading}
         variant={connectionState.live ? "destructive" : "default"}
+        onclick={async () => {
+          connectionState.live
+            ? await connectionState.stopStream()
+            : await connectionState.startStream(stage);
+        }}
       >
         {connectionState.live ? "End" : "Start"} Stream
       </Button>

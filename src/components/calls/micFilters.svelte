@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Input } from "$/components/ui/input";
   import * as Dialog from "$/components/ui/dialog";
+  import Feed from "$/components/calls/feed.svelte";
   import * as Sidebar from "$/components/ui/sidebar";
   import * as Breadcrumb from "$/components/ui/breadcrumb";
-  import Participant from "$/components/calls/participant.svelte";
   import type { EQFREQS } from "$/state/local.stream.state.svelte";
   import type LocalStreamState from "$/state/local.stream.state.svelte";
 
@@ -11,6 +11,8 @@
   import GainIcon from "lucide-svelte/icons/volume-2";
   import EqIcon from "lucide-svelte/icons/audio-lines";
   import CompressorIcon from "lucide-svelte/icons/ear";
+  import Switch from "../ui/switch/switch.svelte";
+  import Label from "../ui/label/label.svelte";
 
   type Props = {
     open?: boolean;
@@ -24,6 +26,7 @@
     { name: "Compressor", icon: CompressorIcon },
   ] as const;
 
+  let monitoring: boolean = $state(false);
   let { open = $bindable(true), local }: Props = $props();
   let active: (typeof filters)[number]["name"] | null = $state(null);
 
@@ -83,7 +86,14 @@
             </Sidebar.GroupContent>
           </Sidebar.Group>
           <div class="flex-none flex justify-center mb-6">
-            <Participant state={local} />
+            <Feed
+              hideBadge
+              class="m-2"
+              state={local}
+              showAnalyzser
+              muted={!monitoring}
+              largeBorder={false}
+            />
           </div>
         </Sidebar.Content>
       </Sidebar.Root>
@@ -110,15 +120,21 @@
         <div
           class="flex flex-1 items-center justify-center flex-col gap-4 overflow-y-auto p-4 pt-0"
         >
-          {#if active === "Gain"}
-            {@render GainConfig()}
-          {:else if active === "Equalizer"}
-            {@render EqualizerConfig()}
-          {:else if active === "Compressor"}
-            {@render CompressorConfig()}
-          {:else if active === "Low-Pass"}
-            {@render LowpassConfig()}
-          {/if}
+          <div class="flex-1">
+            {#if active === "Gain"}
+              {@render GainConfig()}
+            {:else if active === "Equalizer"}
+              {@render EqualizerConfig()}
+            {:else if active === "Compressor"}
+              {@render CompressorConfig()}
+            {:else if active === "Low-Pass"}
+              {@render LowpassConfig()}
+            {/if}
+          </div>
+          <footer class="flex-none w-full flex items-center gap-2 justify-end">
+            <Switch id="monitor" bind:checked={monitoring} />
+            <Label for="monitor">Monitor Mic</Label>
+          </footer>
         </div>
       </main>
     </Sidebar.Provider>

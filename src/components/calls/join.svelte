@@ -1,16 +1,17 @@
 <script lang="ts">
   import { SceneGrids } from "$/lib/classes";
+  import type { Call } from "$/actions/calls";
   import type { Member } from "$/actions/members";
-  import type { Call, Scene } from "$/actions/calls";
+  import Feed from "$/components/calls/feed.svelte";
   import Tools from "$/components/calls/tools.svelte";
-  import PeerConnection from "$/state/peer.state.svelte";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import Devices from "$/components/shared/devices.svelte";
-  import VideoFeed from "$/components/calls/videoFeed.svelte";
-  import CallConnectionState from "$/state/call.connect.state.svelte";
-  import type LocalStreamState from "$/state/local.stream.state.svelte";
   import RemoteStreamState from "$/state/remote.stream.state.svelte";
+  import CallConnectionState from "$/state/call.connect.state.svelte";
+  import StreamMonitor from "$/components/calls/streamMonitor.svelte";
+  import type LocalStreamState from "$/state/local.stream.state.svelte";
+  import Countdown from "./countdown.svelte";
 
   type Props = {
     call: Call;
@@ -31,13 +32,16 @@
 
 <svelte:window onbeforeunload={async () => await connection?.disconnect()} />
 
-{#snippet Feed(peer: Member | null | undefined, area: "A" | "B" | "C" | "D")}
+{#snippet MainFeed(
+  peer: Member | null | undefined,
+  area: "A" | "B" | "C" | "D"
+)}
   {#if peer?.id === currentUser.id && localStreamState}
-    <VideoFeed muted state={localStreamState} style="grid-area: {area};" />
+    <Feed muted state={localStreamState} style="grid-area: {area};" />
   {:else if peer}
     {@const c = connection?.connections.find((s) => s.peer.id === peer.id)}
     {#if c}
-      <VideoFeed state={c.remoteState} style="grid-area: {area};" />
+      <Feed state={c.remoteState} style="grid-area: {area};" />
     {/if}
   {/if}
 {/snippet}
@@ -46,9 +50,9 @@
   <div class="flex flex-col justify-evenly" style="grid-area: B">
     {#each streams as stream}
       {#if stream.member.id === currentUser.id && localStreamState}
-        <VideoFeed muted class="aspect-square" state={localStreamState} />
+        <Feed muted class="aspect-square" state={localStreamState} />
       {:else}
-        <VideoFeed state={stream} class="aspect-square" />
+        <Feed state={stream} class="aspect-square" />
       {/if}
     {/each}
   </div>
@@ -56,17 +60,16 @@
 
 {#snippet sidebarLeft()}
   {#if connection}
-    <Tools class="h-svh" state={connection} />
+    <Tools class="h-svh" bind:stage state={connection} />
   {/if}
 {/snippet}
 
 {#snippet sidebarRight()}
-  <aside class="flex-1 flex flex-col">
-    <!-- <StreamTools
-      videoId={streamingState.videoId ?? undefined}
-      onclick={async () => await streamingState.refreshYoutube()}
-    /> -->
-  </aside>
+  {#if connection}
+    <aside class="flex-1 flex flex-col">
+      <StreamMonitor state={connection} />
+    </aside>
+  {/if}
 {/snippet}
 
 {#if connection}
@@ -81,25 +84,29 @@
         bind:this={stage}
         class:opacity-0={connection.switchingScenes}
         style={SceneGrids[connection.activeScene.type]}
-        class="flex-none grid w-[1920px] h-[1080px] overflow-clip border-red-500 border-dashed transition-opacity duration-300 px-8"
+        class="flex-none grid gap-4 w-[1920px] h-[1080px] overflow-clip border-red-500 border-dashed transition-opacity duration-300 px-8"
       >
         {#if connection.activeScene.type === "pull"}
           {@const others = connection.connections
             .filter((c) => c.peer.id !== connection?.activeScene?.A)
             .map((o) => o.remoteState)}
 
-          {@render Feed(connection.activeScene.expand?.A, "A")}
+          {@render MainFeed(connection.activeScene.expand?.A, "A")}
 
           {#if connection.activeScene.A === currentUser.id}
             {@render Overflow(others)}
           {:else if localStreamState}
             {@render Overflow([...others, localStreamState])}
           {/if}
+        {:else if connection.activeScene.type === "splash" && connection.activeScene.splashURL}
+          <img src={connection.activeScene.splashURL} alt="scene splash" />
+        {:else if connection.activeScene.type === "countdown"}
+          <Countdown ms={connection.activeScene.countdownMS} />
         {:else}
-          {@render Feed(connection.activeScene?.expand?.A, "A")}
-          {@render Feed(connection.activeScene?.expand?.B, "B")}
-          {@render Feed(connection.activeScene?.expand?.C, "C")}
-          {@render Feed(connection.activeScene?.expand?.D, "D")}
+          {@render MainFeed(connection.activeScene?.expand?.A, "A")}
+          {@render MainFeed(connection.activeScene?.expand?.B, "B")}
+          {@render MainFeed(connection.activeScene?.expand?.C, "C")}
+          {@render MainFeed(connection.activeScene?.expand?.D, "D")}
         {/if}
       </main>
     {/if}

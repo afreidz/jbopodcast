@@ -4,7 +4,7 @@
   import UpcomingCalls from "./upcomingCalls.svelte";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
-  import DashboardState from "./state/dashboard.state.svelte";
+  import DashboardState from "$/state/dashboard.state.svelte";
 
   const dashboard = new DashboardState(getCurrentUser());
 
