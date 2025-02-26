@@ -42,8 +42,8 @@ export default class CallState {
         this.localStreamState
       );
 
-      await pc.connect();
       this.addConnection(pc);
+      await pc.connect();
     });
 
     client.collection("calls").subscribe<Call>(
@@ -95,6 +95,7 @@ export default class CallState {
   }
 
   addConnection(c: PeerConnection) {
+    console.log("Connection added");
     const updated = this._connections.filter((e) => e.peer.id !== c.peer.id);
     this._connections = [...updated, c];
   }

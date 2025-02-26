@@ -5,22 +5,23 @@ import type { Connection } from "$/actions/connection";
 import RemoteStreamState from "$/state/remote.stream.state.svelte";
 import type LocalStreamState from "$/state/local.stream.state.svelte";
 
-const rtcConfig: RTCConfiguration = {
+const cfg = {
   iceServers: [
     {
       urls: [
         "stun:stun.l.google.com:19302",
-        "stun:stun1.l.google.com:19302",
-        "stun:stun2.l.google.com:19302",
-        "stun:stun3.l.google.com:19302",
-        "stun:stun4.l.google.com:19302",
-        "stun:stun.stunprotocol.org:3478",
-        "stun:stun.ekiga.net:3478",
-        "stun:stun.nextcloud.com:443",
+        "stun:stun.l.google.com:5349",
+        "stun:stun.l.google.com:3478",
+        "stun:stun.l.google.com:5349",
+        "stun:stun.l.google.com:19302",
+        "stun:stun.l.google.com:5349",
+        "stun:stun.l.google.com:3478",
+        "stun:stun.l.google.com:5349",
+        "stun:stun.l.google.com:19302",
+        "stun:stun.l.google.com:5349",
       ],
     },
   ],
-  iceCandidatePoolSize: 10,
 };
 
 export default class PeerConnection {
@@ -42,7 +43,7 @@ export default class PeerConnection {
     this.peer = peer;
     this.callId = callId;
     this.userId = userId;
-    this.rtc = new RTCPeerConnection(rtcConfig);
+    this.rtc = new RTCPeerConnection(cfg);
     this.localStreamState = localStreamState;
     this.remoteState = new RemoteStreamState(this.peer);
 
@@ -108,18 +109,33 @@ export default class PeerConnection {
   }
 
   protected async createOffer() {
-    const offer = await this.rtc.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true,
-    });
-    await this.rtc.setLocalDescription(offer);
+    console.log("Creating offer to", this.peer.id);
+
+    const offer = await this.rtc
+      .createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      })
+      .catch((err) => {
+        console.error(err);
+        return null;
+      });
+
+    if (offer)
+      await this.rtc.setLocalDescription(offer).catch((err) => {
+        console.error(err);
+      });
 
     this.rtc.restartIce();
+    console.log("starting ice...");
+
     await new Promise((r) => {
       this.rtc.addEventListener("icegatheringstatechange", () => {
         if (this.rtc.iceGatheringState === "complete") r(true);
       });
     });
+
+    console.log("ice complete");
 
     await actions.connections.offerToPeer({
       offer,
