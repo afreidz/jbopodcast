@@ -5,12 +5,22 @@ import type { Connection } from "$/actions/connection";
 import RemoteStreamState from "$/state/remote.stream.state.svelte";
 import type LocalStreamState from "$/state/local.stream.state.svelte";
 
-const iceConfiguration = {
+const rtcConfig: RTCConfiguration = {
   iceServers: [
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun3.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:19302" },
+    {
+      urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun2.l.google.com:19302",
+        "stun:stun3.l.google.com:19302",
+        "stun:stun4.l.google.com:19302",
+        "stun:stun.stunprotocol.org:3478",
+        "stun:stun.ekiga.net:3478",
+        "stun:stun.nextcloud.com:443",
+      ],
+    },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 export default class PeerConnection {
@@ -32,7 +42,7 @@ export default class PeerConnection {
     this.peer = peer;
     this.callId = callId;
     this.userId = userId;
-    this.rtc = new RTCPeerConnection(iceConfiguration);
+    this.rtc = new RTCPeerConnection(rtcConfig);
     this.localStreamState = localStreamState;
     this.remoteState = new RemoteStreamState(this.peer);
 
@@ -41,11 +51,13 @@ export default class PeerConnection {
     });
 
     this.rtc.addEventListener("icecandidate", (c) => {
+      console.log("Recieved Ice Candidate");
       if (c.candidate) this.ice.push(c.candidate);
     });
 
     this.rtc.addEventListener("track", ({ streams }) => {
       if (streams[0]) {
+        console.log("Recieved media stream from remote");
         this.remoteState.connectStream(streams[0]);
       }
     });
