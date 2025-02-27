@@ -18,7 +18,10 @@ export const onRequest = defineMiddleware(
     if (!client.authStore.isValid) {
       client.authStore.clear();
       const response = redirect("/insider/signin");
-      response.headers.append("set-cookie", client.authStore.exportToCookie());
+      response.headers.append(
+        "set-cookie",
+        client.authStore.exportToCookie({ httpOnly: false })
+      );
       return response;
     }
 
@@ -27,13 +30,19 @@ export const onRequest = defineMiddleware(
     } catch (_) {
       client.authStore.clear();
       const response = redirect("/insider/signin");
-      response.headers.append("set-cookie", client.authStore.exportToCookie());
+      response.headers.append(
+        "set-cookie",
+        client.authStore.exportToCookie({ httpOnly: false })
+      );
       return response;
     }
 
     const response = await next();
 
-    response.headers.append("set-cookie", client.authStore.exportToCookie());
+    response.headers.append(
+      "set-cookie",
+      client.authStore.exportToCookie({ httpOnly: false })
+    );
     return response;
   }
 );

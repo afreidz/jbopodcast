@@ -1,6 +1,5 @@
 <script lang="ts">
   import { actions } from "astro:actions";
-  import { deleteCookie } from "$/lib/cookie";
   import client from "$/lib/pocketbase/client";
   import { Input } from "$/components/ui/input";
   import { Label } from "$/components/ui/label";
@@ -18,9 +17,9 @@
 
   const sidebar = Sidebar.useSidebar();
 
-  let name: string = $state("");
-  let handle: string = $state("");
   let editingUserDetails: boolean = $state(false);
+  let name: string = $state(userState.currentUser?.name);
+  let handle: string = $state(userState.currentUser?.handle);
 
   async function updateUser(e: SubmitEvent) {
     e.preventDefault();
@@ -33,8 +32,8 @@
   }
 
   async function logout() {
-    deleteCookie("pb_auth");
     client.authStore.clear();
+    document.cookie = client.authStore.exportToCookie({ httpOnly: false });
     await actions.members.logout();
     return await navigate("/insider/signin");
   }
