@@ -1,7 +1,7 @@
 /*
 	jsrepo 1.41.2
 	Installed from github/ieedan/shadcn-svelte-extras
-	2-26-2025
+	2-27-2025
 */
 
 import { type ClassValue, clsx } from "clsx";

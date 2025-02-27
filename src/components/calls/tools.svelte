@@ -47,11 +47,7 @@
 {#snippet SceneMember(member: Member | null)}
   <div class="size-full flex items-center justify-center">
     {#if member}
-      <Avatar
-        email={member.email}
-        class="size-6 text-xs"
-        name={member.handle || member.name}
-      />
+      <Avatar {member} />
     {:else}
       <MemberIcon class="text-muted" />
     {/if}

@@ -1,6 +1,12 @@
+<!--
+	jsrepo 1.41.2
+	Installed from github/ieedan/shadcn-svelte-extras
+	2-27-2025
+-->
+
 <script lang="ts">
-	import { Avatar as AvatarPrimitive } from "bits-ui";
-	import { cn } from "$/lib/shadcn.js";
+	import { Avatar as AvatarPrimitive } from 'bits-ui';
+	import { cn } from '../../../blocks/utils/utils.js';
 
 	let {
 		ref = $bindable(null),
@@ -11,6 +17,6 @@
 
 <AvatarPrimitive.Fallback
 	bind:ref
-	class={cn("bg-muted flex size-full items-center justify-center", className)}
+	class={cn('flex h-full w-full items-center justify-center rounded-full bg-muted', className)}
 	{...restProps}
 />

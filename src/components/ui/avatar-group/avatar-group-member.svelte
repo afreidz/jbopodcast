@@ -5,6 +5,7 @@
 -->
 
 <script lang="ts">
+	import AvatarRoot from '../avatar/avatar.svelte';
 	import { Avatar as AvatarPrimitive } from 'bits-ui';
 	import { cn } from '../../../blocks/utils/utils.js';
 
@@ -15,8 +16,4 @@
 	}: AvatarPrimitive.RootProps = $props();
 </script>
 
-<AvatarPrimitive.Root
-	bind:ref
-	class={cn('relative flex size-10 shrink-0 overflow-hidden rounded-full', className)}
-	{...restProps}
-/>
+<AvatarRoot bind:ref class={cn('bg-accent ring-2 ring-background', className)} {...restProps} />

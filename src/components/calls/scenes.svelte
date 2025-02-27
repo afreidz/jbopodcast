@@ -182,7 +182,7 @@
       class="size-full flex items-center justify-center"
     >
       {#if member}
-        <Avatar name={member.handle || member.name} email={member.email!} />
+        <Avatar {member} />
       {:else}
         <MemberIcon class="text-muted" />
       {/if}
@@ -197,7 +197,7 @@
           onclick={() => (scene[position] = member.id)}
           class="flex justify-start gap-3 p-4 h-auto mb-2"
         >
-          <Avatar email={member.email} name={member.handle || member.name} />
+          <Avatar {member} />
           <div class="flex flex-col">
             <span class="font-medium">{member.name || member.email}</span>
             <span class="text-sm text-muted-foreground">{member.handle}</span>

@@ -3,6 +3,7 @@
   import * as Card from "$/components/ui/card";
   import { Skeleton } from "$/components/ui/skeleton";
   import Avatar from "$/components/shared/avatar.svelte";
+  import AvatarGroup from "./avatarGroup.svelte";
 
   type Props = {
     call?: Call;
@@ -54,13 +55,10 @@
         {#if !call}
           <Skeleton class="size-6 rounded-full" />
         {:else if call.expand}
-          {#each [call.expand.host, ...call.expand.guests] as guest}
-            <Avatar
-              name={guest.name}
-              email={guest.email}
-              class="size-6 text-xs -mx-[3px]"
-            />
-          {/each}
+          <AvatarGroup
+            members={[call.expand.host, ...call.expand.guests]}
+            class="size-6 text-xs"
+          />
         {/if}
       </div>
     </Card.Footer>

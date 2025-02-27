@@ -51,12 +51,7 @@
               class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               {#if userState.currentUser}
-                <Avatar
-                  class="size-8"
-                  name={userState.currentUser.handle ||
-                    userState.currentUser.name}
-                  email={userState.currentUser.email}
-                />
+                <Avatar member={userState.currentUser} />
                 <div class="grid flex-1 text-left text-sm leading-tight">
                   <span class="truncate font-semibold"
                     >{userState.currentUser.name}</span
@@ -78,12 +73,7 @@
         >
           <DropdownMenu.Label class="p-0 font-normal">
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-              <Avatar
-                class="size-8"
-                name={userState.currentUser.handle ||
-                  userState.currentUser.name}
-                email={userState.currentUser.email}
-              />
+              <Avatar member={userState.currentUser} />
               <div class="grid flex-1 text-left text-sm leading-tight">
                 <span class="truncate font-semibold"
                   >{userState.currentUser.name}</span

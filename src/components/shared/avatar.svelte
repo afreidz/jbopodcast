@@ -1,23 +1,23 @@
 <script lang="ts">
   import gravatar from "gravatar";
   import * as Avatar from "$/components/ui/avatar";
+  import type { CurrentUser, Member } from "$/actions/members";
 
   type Props = {
-    email: string;
     class?: string;
-    name?: string | null;
+    member: Member | NonNullable<CurrentUser>;
   };
 
-  let { email, name, class: classlist = "" }: Props = $props();
-  let avatarURL = $derived(gravatar.url(email, { s: "100", d: "404" }));
+  let { member, class: classlist = "" }: Props = $props();
+  let avatarURL = $derived(gravatar.url(member.email, { s: "100", d: "404" }));
 
   let fallback = $derived.by(() => {
-    const w = name?.split(" ") ?? "?";
+    const w = member.name?.split(" ") ?? "?";
     return `${w[0].charAt(0) ?? ""}${w.at(-1)?.charAt(0) ?? ""}`;
   });
 </script>
 
 <Avatar.Root class={classlist}>
-  <Avatar.Image src={avatarURL} alt={email} />
+  <Avatar.Image src={avatarURL} alt={member.email} />
   <Avatar.Fallback>{fallback}</Avatar.Fallback>
 </Avatar.Root>

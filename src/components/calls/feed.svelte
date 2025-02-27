@@ -82,10 +82,7 @@
       >
     {/if}
     {#if !streamState.stream || hideVideo}
-      <Avatar
-        email={streamState.member.email}
-        name={streamState.member.name || streamState.member.email}
-      />
+      <Avatar member={streamState.member} />
     {/if}
   </div>
 </div>

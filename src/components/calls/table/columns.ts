@@ -1,37 +1,50 @@
-import { createRawSnippet } from "svelte";
 import type { Call } from "$/actions/calls";
 import type { ColumnDef } from "@tanstack/table-core";
 import { renderSnippet } from "$/components/ui/data-table";
+import {
+  badgeCell,
+  dateCell,
+  multipleAvatars,
+  singleAvatarCell,
+} from "./cells.svelte";
 
 export const columns: ColumnDef<Call>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
+  // {
+  //   accessorKey: "id",
+  //   header: "ID",
+  //   cell: ({ row }) => {
+  //     return renderSnippet(badgeCell, row.getValue("id"));
+  //   },
+  // },
   {
     accessorKey: "scheduled",
     header: "Scheduled",
     cell: ({ row }) => {
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      });
-
-      const amountCellSnippet = createRawSnippet<[string]>((getScheduled) => {
-        const scheduled = getScheduled();
-        return {
-          render: () => `${scheduled}`,
-        };
-      });
-
-      return renderSnippet(
-        amountCellSnippet,
-        formatter.format(new Date(row.getValue("scheduled")))
-      );
+      return renderSnippet(dateCell, row.getValue("scheduled"));
     },
   },
   {
     accessorKey: "title",
     header: "Title",
+  },
+  {
+    accessorKey: "host",
+    header: "Host",
+    cell: ({ row }) => {
+      const fullHost = row.original.expand?.host;
+      if (!fullHost) return renderSnippet(badgeCell, row.getValue("host"));
+      return renderSnippet(singleAvatarCell, fullHost);
+    },
+  },
+  {
+    accessorKey: "guests",
+    header: "Guests",
+    cell: ({ row }) => {
+      const fullGuests = row.original.expand?.guests;
+
+      if (!fullGuests) return row.original.guests.length;
+
+      return renderSnippet(multipleAvatars, fullGuests);
+    },
   },
 ];

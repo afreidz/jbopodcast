@@ -131,7 +131,7 @@
                   aria-label={`Toggle ${member.name} on new call`}
                 >
                   <div class="flex items-center gap-3">
-                    <Avatar name={member.name} email={member.email!} />
+                    <Avatar {member} />
                     <div class="flex flex-col">
                       <span class="font-medium"
                         >{member.name || member.email}</span
