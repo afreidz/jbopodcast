@@ -17,14 +17,18 @@ export const onRequest = defineMiddleware(
 
     if (!client.authStore.isValid) {
       client.authStore.clear();
-      return redirect("/insider/signin");
+      const response = redirect("/insider/signin");
+      response.headers.append("set-cookie", client.authStore.exportToCookie());
+      return response;
     }
 
     try {
       await client.collection("users").authRefresh();
     } catch (_) {
       client.authStore.clear();
-      return redirect("/insider/signin");
+      const response = redirect("/insider/signin");
+      response.headers.append("set-cookie", client.authStore.exportToCookie());
+      return response;
     }
 
     const response = await next();

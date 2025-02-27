@@ -68,5 +68,10 @@ let { class: classList } = Astro.props;
         attributeFilter: ["class"],
       });
     }
+
+    document.addEventListener("astro:before-swap", async () => {
+      if (window.JBO_PODCAST_CONNECTION)
+        await window.JBO_PODCAST_CONNECTION.disconnect();
+    });
   </script>
 </html>

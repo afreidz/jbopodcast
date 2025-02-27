@@ -219,10 +219,19 @@ export default class CallState {
   }
 
   async disconnect() {
-    if (!userStateSvelte.currentUser) return;
+    await this.stopStream();
+    this.localStreamState.stop();
+    this.localStreamState.stream?.getTracks().forEach((t) => t.stop());
+
+    await Promise.all(
+      this.connections.map(async (c) => {
+        await c.disconnect();
+      })
+    );
+
     await actions.connections.disconnect({
       call: this.call.id,
-      member: userStateSvelte.currentUser.id,
+      member: userStateSvelte.currentUser!.id,
     });
   }
 }

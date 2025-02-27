@@ -33,11 +33,17 @@
   $effect(() => {
     if (localStreamState?.stream && !connection) {
       connection = new CallConnectionState(call, localStreamState);
+      if (!import.meta.env.SSR) window.JBO_PODCAST_CONNECTION = connection;
     }
   });
 </script>
 
-<svelte:window onbeforeunload={async () => await connection?.disconnect()} />
+<svelte:window
+  onbeforeunload={async () => {
+    console.log(connection);
+    await connection?.disconnect();
+  }}
+/>
 
 {#snippet MainFeed(
   peer: Member | null | undefined,

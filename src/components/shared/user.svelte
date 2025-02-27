@@ -1,5 +1,6 @@
 <script lang="ts">
   import { actions } from "astro:actions";
+  import { deleteCookie } from "$/lib/cookie";
   import client from "$/lib/pocketbase/client";
   import { Input } from "$/components/ui/input";
   import { Label } from "$/components/ui/label";
@@ -32,6 +33,7 @@
   }
 
   async function logout() {
+    deleteCookie("pb_auth");
     client.authStore.clear();
     await actions.members.logout();
     return await navigate("/insider/signin");

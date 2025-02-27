@@ -13,6 +13,7 @@
   import MemberIcon from "lucide-svelte/icons/user";
   import Feed from "$/components/calls/feed.svelte";
   import userState from "$/state/user.state.svelte";
+  import { navigate } from "astro:transitions/client";
   import Avatar from "$/components/shared/avatar.svelte";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import SettingsIcon from "lucide-svelte/icons/mic-vocal";
@@ -36,6 +37,11 @@
   let isHosting = $derived(
     connectionState.call.host === userState.currentUser?.id
   );
+
+  async function disconnect() {
+    await connectionState.disconnect();
+    return navigate("/insider");
+  }
 </script>
 
 {#snippet SceneMember(member: Member | null)}
@@ -126,7 +132,7 @@
       {/key}
     {/each}
   </ScrollArea>
-  <footer class="flex gap-2 justify-center">
+  <footer class="flex flex-col gap-2 justify-center">
     <Button
       size="icon"
       disabled={connectionState.live}
@@ -148,6 +154,9 @@
         {connectionState.live ? "End" : "Start"} Stream
       </Button>
     {/if}
+    <Button onclick={() => disconnect()} variant="destructive"
+      >Disconnect</Button
+    >
   </footer>
 </div>
 <MicFilters
