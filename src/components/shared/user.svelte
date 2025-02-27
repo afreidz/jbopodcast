@@ -1,11 +1,13 @@
 <script lang="ts">
   import { actions } from "astro:actions";
+  import client from "$/lib/pocketbase/client";
   import { Input } from "$/components/ui/input";
   import { Label } from "$/components/ui/label";
   import { Button } from "$/components/ui/button";
   import * as Dialog from "$/components/ui/dialog";
   import userState from "$/state/user.state.svelte";
   import * as Sidebar from "$/components/ui/sidebar";
+  import { navigate } from "astro:transitions/client";
   import Avatar from "$/components/shared/avatar.svelte";
   import * as DropdownMenu from "$/components/ui/dropdown-menu";
 
@@ -27,6 +29,12 @@
     });
     await userState.refresh();
     editingUserDetails = false;
+  }
+
+  async function logout() {
+    client.authStore.clear();
+    await actions.members.logout();
+    return await navigate("/insider/signin");
   }
 </script>
 
@@ -93,7 +101,7 @@
             </DropdownMenu.Item>
           </DropdownMenu.Group>
           <DropdownMenu.Separator />
-          <DropdownMenu.Item>
+          <DropdownMenu.Item onclick={() => logout()}>
             <LogOut />
             Log out
           </DropdownMenu.Item>

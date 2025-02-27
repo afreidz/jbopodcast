@@ -20,6 +20,14 @@ export const getCurrentUser = defineAction({
   },
 });
 
+export const logout = defineAction({
+  handler: async (_, context) => {
+    context.locals.client.authStore.clear();
+    context.cookies.delete("pb_auth");
+    return null;
+  },
+});
+
 export const getAll = defineAction({
   handler: async (_, context) => {
     const client = await refresh(

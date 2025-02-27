@@ -2,6 +2,7 @@
 import "$/styles/global.css";
 import { Toaster } from "svelte-sonner";
 import { ModeWatcher } from "mode-watcher";
+import { ClientRouter } from "astro:transitions";
 
 export interface Props {
   class?: string;
@@ -27,6 +28,7 @@ let { class: classList } = Astro.props;
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="icons/apple-icon-180.png" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <ClientRouter />
   </head>
 
   <body class={classList}>
@@ -43,9 +45,7 @@ let { class: classList } = Astro.props;
         },
       }}
     />
-  </body>
-
-  <script is:inline>
+  </body><script is:inline>
     const isBrowser = typeof localStorage !== "undefined";
     const getThemePreference = () => {
       if (isBrowser && localStorage.getItem("theme")) {
