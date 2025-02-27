@@ -25,18 +25,11 @@
     if (connection.videoId) {
       if (interval) clearInterval(interval);
       initialized = true;
-      console.log(
-        "Video ID found initializing",
-        !!interval,
-        connection.videoId,
-        initialized
-      );
     }
   });
 
   $effect(() => {
     if (!initialized && !interval && connection.live) {
-      console.log("Setting interval", initialized, !!interval, connection.live);
       interval = setInterval(() => {
         connection.refreshYoutube();
       }, 3000);
@@ -49,8 +42,6 @@
       console.log("Livestream ended", connection.live, interval);
     }
   });
-
-  $inspect(connection.videoId, chatURL);
 </script>
 
 {#if !connection.videoId}

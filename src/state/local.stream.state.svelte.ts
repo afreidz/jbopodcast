@@ -1,4 +1,4 @@
-import type { Member } from "$/actions/members";
+import type { CurrentUser, Member } from "$/actions/members";
 import { BaseStreamState } from "$/state/remote.stream.state.svelte";
 
 type CompressorValues = {
@@ -56,7 +56,7 @@ export default class LocalStreamState extends BaseStreamState {
     }, {} as EqualizerValues)
   );
 
-  constructor(member: Member, stream?: MediaStream) {
+  constructor(member: Member | NonNullable<CurrentUser>, stream?: MediaStream) {
     super(member);
     this.gainNode = this.ac.createGain();
     this.lowpass = this.ac.createBiquadFilter();

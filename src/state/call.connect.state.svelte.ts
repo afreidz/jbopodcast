@@ -1,17 +1,16 @@
 import { toast } from "svelte-sonner";
 import { actions } from "astro:actions";
 import client from "$/lib/pocketbase/client";
+import userStateSvelte from "./user.state.svelte";
 import type { Call, Scene } from "$/actions/calls";
 import { PUBLIC_LOCAL_RELAY } from "astro:env/client";
 import PeerConnection from "$/state/peer.state.svelte";
 import type LocalStreamState from "$/state/local.stream.state.svelte";
-import { getCurrentUser, type CurrentUser } from "$/lib/pocketbase/client";
 
 export default class CallState {
   public call: Call;
   public localStreamState: LocalStreamState;
 
-  protected user: CurrentUser;
   protected stage: HTMLElement | null = null;
   protected recorder: MediaRecorder | null = null;
 
@@ -24,21 +23,23 @@ export default class CallState {
   protected _live: boolean = $state(false);
 
   constructor(call: Call, localStreamState: LocalStreamState) {
-    this.user = getCurrentUser();
-
     this.call = call;
     this.localStreamState = localStreamState;
 
     const otherMembers = [
       this.call.expand!.host,
       ...this.call.expand!.guests,
-    ].filter((m) => m.id !== this.user.id);
+    ].filter((m) => m.id !== userStateSvelte.currentUser?.id);
 
     otherMembers.forEach(async (guest) => {
+      if (!userStateSvelte.currentUser) {
+        toast.error("Unable to initiate call. No current user");
+        return;
+      }
       const pc = new PeerConnection(
         guest,
         this.call.id,
-        this.user.id,
+        userStateSvelte.currentUser.id,
         this.localStreamState
       );
 
@@ -46,21 +47,22 @@ export default class CallState {
       await pc.connect();
     });
 
-    client.collection("calls").subscribe<Call>(
-      this.call.id,
-      ({ record }) => {
-        if (
-          record.activeScene !== this._activeScene?.id &&
-          record.expand?.activeScene
-        ) {
-          this._activeScene = record.expand.activeScene;
+    if (!import.meta.env.SSR)
+      client.collection("calls").subscribe<Call>(
+        this.call.id,
+        ({ record }) => {
+          if (
+            record.activeScene !== this._activeScene?.id &&
+            record.expand?.activeScene
+          ) {
+            this._activeScene = record.expand.activeScene;
+          }
+        },
+        {
+          expand:
+            "activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D",
         }
-      },
-      {
-        expand:
-          "activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D",
-      }
-    );
+      );
 
     const scene = this.call.expand?.activeScene || this.scenes.at(-1);
     if (scene) this._activeScene = scene;
@@ -217,9 +219,10 @@ export default class CallState {
   }
 
   async disconnect() {
+    if (!userStateSvelte.currentUser) return;
     await actions.connections.disconnect({
       call: this.call.id,
-      member: this.user.id,
+      member: userStateSvelte.currentUser.id,
     });
   }
 }

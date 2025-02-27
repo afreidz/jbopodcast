@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { SceneGrids } from "$/lib/classes";
   import type { Call } from "$/actions/calls";
   import type { Member } from "$/actions/members";
+  import userState from "$/state/user.state.svelte";
   import Feed from "$/components/calls/feed.svelte";
   import Tools from "$/components/calls/tools.svelte";
-  import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import Devices from "$/components/shared/devices.svelte";
   import Countdown from "$/components/calls/countdown.svelte";
@@ -17,8 +18,9 @@
     call: Call;
   };
 
+  onMount(async () => await userState.refresh());
+
   let { call }: Props = $props();
-  let currentUser = getCurrentUser();
   let stage: HTMLElement | undefined = $state(undefined);
   let connection: CallConnectionState | null = $state(null);
   let localStreamState: LocalStreamState | undefined = $state(undefined);
@@ -33,7 +35,6 @@
       connection = new CallConnectionState(call, localStreamState);
     }
   });
-  $inspect(connection);
 </script>
 
 <svelte:window onbeforeunload={async () => await connection?.disconnect()} />
@@ -42,7 +43,7 @@
   peer: Member | null | undefined,
   area: "A" | "B" | "C" | "D"
 )}
-  {#if peer?.id === currentUser?.id && localStreamState}
+  {#if peer?.id === userState.currentUser?.id && localStreamState}
     <Feed muted state={localStreamState} style="grid-area: {area};" />
   {:else if peer}
     {@const c = connection?.connections.find((s) => s.peer.id === peer.id)}
@@ -55,7 +56,7 @@
 {#snippet Overflow(streams: (LocalStreamState | RemoteStreamState)[])}
   <div class="flex flex-col justify-evenly" style="grid-area: B">
     {#each streams as stream}
-      {#if stream.member.id === currentUser?.id && localStreamState}
+      {#if stream.member.id === userState.currentUser?.id && localStreamState}
         <Feed muted class="aspect-square" state={localStreamState} />
       {:else}
         <Feed state={stream} class="aspect-square" />
@@ -99,7 +100,7 @@
 
           {@render MainFeed(connection.activeScene.expand?.A, "A")}
 
-          {#if connection.activeScene.A === currentUser!.id}
+          {#if connection.activeScene.A === userState.currentUser!.id}
             {@render Overflow(others)}
           {:else if localStreamState}
             {@render Overflow([...others, localStreamState])}

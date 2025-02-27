@@ -1,7 +1,7 @@
-import type { Member } from "$/actions/members";
+import type { CurrentUser, Member } from "$/actions/members";
 
 export class BaseStreamState {
-  public member: Member;
+  public member: Member | NonNullable<CurrentUser>;
 
   protected animationFrameId?: number;
   protected analyser: AnalyserNode;
@@ -14,7 +14,7 @@ export class BaseStreamState {
   protected _stream: MediaStream | null = $state(null);
   protected _level: "peaked" | "loud" | "normal" = $state("normal");
 
-  constructor(member: Member, stream?: MediaStream) {
+  constructor(member: Member | NonNullable<CurrentUser>, stream?: MediaStream) {
     this.member = member;
 
     this.ac = new AudioContext();

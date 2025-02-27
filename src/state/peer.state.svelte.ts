@@ -104,59 +104,68 @@ export default class PeerConnection {
       }
     });
 
-    client.collection("connections").subscribe("*", async (e) => {
-      if (
-        e.action === "update" &&
-        e.record.call === this.callId &&
-        e.record.from === this.peer.id &&
-        e.record.to === this.userId
-      ) {
-        // Remote Initiated Peer Update
-        if (e.record.from_ice_candidates) {
-          console.log("Adding remote ice candidates");
-          const candidates = e.record.from_ice_candidates as RTCIceCandidate[];
-          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
-        }
+    if (!import.meta.env.SSR)
+      client.collection("connections").subscribe("*", async (e) => {
+        if (
+          e.action === "update" &&
+          e.record.call === this.callId &&
+          e.record.from === this.peer.id &&
+          e.record.to === this.userId
+        ) {
+          // Remote Initiated Peer Update
+          if (e.record.from_ice_candidates) {
+            console.log("Adding remote ice candidates");
+            const candidates = e.record
+              .from_ice_candidates as RTCIceCandidate[];
+            await Promise.all(
+              candidates.map((c) => this.rtc.addIceCandidate(c))
+            );
+          }
 
-        if (e.record.offer && !e.record.answer) {
-          console.log("Answering remote offer");
-          await this.answerOffer(e.record);
-        }
-      } else if (
-        e.action === "update" &&
-        e.record.call === this.callId &&
-        e.record.to === this.peer.id &&
-        e.record.from === this.userId
-      ) {
-        // Self Initiated Peer Update
-        if (e.record.to_ice_candidates) {
-          console.log("Adding remote ice candidates");
-          const candidates = e.record.to_ice_candidates as RTCIceCandidate[];
-          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
-        }
+          if (e.record.offer && !e.record.answer) {
+            console.log("Answering remote offer");
+            await this.answerOffer(e.record);
+          }
+        } else if (
+          e.action === "update" &&
+          e.record.call === this.callId &&
+          e.record.to === this.peer.id &&
+          e.record.from === this.userId
+        ) {
+          // Self Initiated Peer Update
+          if (e.record.to_ice_candidates) {
+            console.log("Adding remote ice candidates");
+            const candidates = e.record.to_ice_candidates as RTCIceCandidate[];
+            await Promise.all(
+              candidates.map((c) => this.rtc.addIceCandidate(c))
+            );
+          }
 
-        if (e.record.answer) {
-          console.log("Setting answer from remote");
-          await this.setAnswer(e.record.answer as RTCSessionDescription);
-        }
-      } else if (
-        e.action === "create" &&
-        e.record.call === this.callId &&
-        e.record.to === this.userId &&
-        e.record.from === this.peer.id
-      ) {
-        if (e.record.from_ice_candidates) {
-          console.log("Adding new remote ice candidates");
-          const candidates = e.record.from_ice_candidates as RTCIceCandidate[];
-          await Promise.all(candidates.map((c) => this.rtc.addIceCandidate(c)));
-        }
+          if (e.record.answer) {
+            console.log("Setting answer from remote");
+            await this.setAnswer(e.record.answer as RTCSessionDescription);
+          }
+        } else if (
+          e.action === "create" &&
+          e.record.call === this.callId &&
+          e.record.to === this.userId &&
+          e.record.from === this.peer.id
+        ) {
+          if (e.record.from_ice_candidates) {
+            console.log("Adding new remote ice candidates");
+            const candidates = e.record
+              .from_ice_candidates as RTCIceCandidate[];
+            await Promise.all(
+              candidates.map((c) => this.rtc.addIceCandidate(c))
+            );
+          }
 
-        if (e.record.offer) {
-          console.log("Answering new peer offer");
-          await this.answerOffer(e.record);
+          if (e.record.offer) {
+            console.log("Answering new peer offer");
+            await this.answerOffer(e.record);
+          }
         }
-      }
-    });
+      });
   }
 
   get ready() {
@@ -171,6 +180,9 @@ export default class PeerConnection {
         from: this.peer.id,
       })
     ).data;
+
+    if (request) console.log("Existing request found");
+    if (!request) console.log("No request found. Creating offer");
 
     return request ? await this.answerOffer(request) : await this.createOffer();
   }

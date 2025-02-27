@@ -12,8 +12,8 @@
   import type { Member } from "$/actions/members";
   import MemberIcon from "lucide-svelte/icons/user";
   import Feed from "$/components/calls/feed.svelte";
+  import userState from "$/state/user.state.svelte";
   import Avatar from "$/components/shared/avatar.svelte";
-  import { getCurrentUser } from "$/lib/pocketbase/client";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import SettingsIcon from "lucide-svelte/icons/mic-vocal";
   import Button from "$/components/ui/button/button.svelte";
@@ -26,7 +26,6 @@
     state: CallConnectionState;
   };
 
-  let currentUser = getCurrentUser();
   let micFiltersShown: boolean = $state(false);
   let {
     class: classList = "",
@@ -34,7 +33,9 @@
     stage = $bindable(),
   }: Props = $props();
 
-  let isHosting = $derived(connectionState.call.host === currentUser.id);
+  let isHosting = $derived(
+    connectionState.call.host === userState.currentUser?.id
+  );
 </script>
 
 {#snippet SceneMember(member: Member | null)}
@@ -72,7 +73,7 @@
           onclick={async () => await connectionState.setActiveScene(scene)}
           class="flex w-full items-center gap-4 hover:bg-white/5 rounded-md"
         >
-          <div class="h-20">
+          <div class="flex-1">
             {#if scene.type === "spotlight"}
               {@render Spotlight(AMember)}
             {:else if scene.type === "twoUp"}
@@ -89,7 +90,9 @@
               {@render Countdown()}
             {/if}
           </div>
-          <strong>{scene.label}</strong>
+          {#if connectionState.scenes.some((s) => !!s.label)}
+            <strong class="flex-1 truncate">{scene.label}</strong>
+          {/if}
         </button>
       {/each}
     </ScrollArea>

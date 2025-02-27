@@ -1,16 +1,12 @@
 import { actions } from "astro:actions";
 import type { Call } from "$/actions/calls";
 import client from "$/lib/pocketbase/client";
-import type { CurrentUser } from "$/lib/pocketbase/client";
+import userState from "$/state/user.state.svelte";
+import type { CurrentUser } from "$/actions/members";
 
 export default class DashboardState {
-  protected currentUser: CurrentUser;
-  protected _loading: boolean = $state(true);
+  protected _loading: boolean = $state(false);
   protected _upcomingCalls: Call[] = $state([]);
-
-  constructor(m: CurrentUser) {
-    this.currentUser = m;
-  }
 
   get upcomingCalls() {
     return this._upcomingCalls;
@@ -23,17 +19,23 @@ export default class DashboardState {
   async init() {
     await this.refreshUpcoming();
 
-    client.collection("calls").subscribe("*", async () => {
-      await this.refreshUpcoming();
-    })
+    if (!import.meta.env.SSR)
+      client.collection("calls").subscribe("*", async () => {
+        await this.refreshUpcoming();
+      });
   }
 
   protected async refreshUpcoming() {
+    if (!userState.currentUser) return [];
+
     this._loading = true;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const calls = await actions.calls.getUpcoming({ date: today, userId: this.currentUser?.id! });
+    const calls = await actions.calls.getUpcoming({
+      date: today,
+      userId: userState.currentUser.id,
+    });
 
     if (calls.error) {
       return console.error(calls.error);

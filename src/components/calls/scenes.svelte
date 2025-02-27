@@ -298,7 +298,6 @@
           </div>
           <div class="flex flex-1 flex-col gap-2 justify-center">
             <Input
-              required
               class="w-[300px]"
               bind:value={scene.label}
               placeholder="Scene Label"

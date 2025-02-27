@@ -5,8 +5,8 @@
   import { Button } from "$/components/ui/button";
   import * as Dialog from "$/components/ui/dialog";
   import * as Select from "$/components/ui/select";
+  import userState from "$/state/user.state.svelte";
   import Label from "$/components/ui/label/label.svelte";
-  import { getCurrentUser } from "$/lib/pocketbase/client";
   import LocalStreamState from "$/state/local.stream.state.svelte";
 
   type Props = {
@@ -97,7 +97,7 @@
         frameRate: { ideal: 30, min: 20 },
       },
     });
-    localStreamState = new LocalStreamState(getCurrentUser()!, baseStream);
+    localStreamState = new LocalStreamState(userState.currentUser!, baseStream);
   }
 </script>
 

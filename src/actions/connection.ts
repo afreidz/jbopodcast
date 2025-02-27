@@ -1,7 +1,8 @@
 import { z } from "astro:schema";
 import { defineAction } from "astro:actions";
+import { refresh } from "$/lib/pocketbase/server";
 import type { ConnectionsResponse } from "@pocketbase/types";
-import { queryBuilder, query, impersonate } from "$/lib/pocketbase/server";
+import { queryBuilder, query } from "$/lib/pocketbase/server";
 
 const expand = "to,from";
 
@@ -14,7 +15,10 @@ export const offerToPeer = defineAction({
     fromIce: z.any().optional(),
   }),
   async handler(input, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     const filter = queryBuilder(
       query.and(
@@ -61,7 +65,10 @@ export const find = defineAction({
     call: z.string(),
   }),
   async handler({ to, from, call }, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     const filter = queryBuilder(
       query.and(
@@ -84,7 +91,10 @@ export const getOffers = defineAction({
     member: z.string(),
   }),
   async handler({ call, member }, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     const filter = queryBuilder(
       query.and(query.eq("to", member), query.eq("call", call))
@@ -105,7 +115,10 @@ export const updateConnection = defineAction({
     fromIce: z.any().optional(),
   }),
   async handler(input, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     return await client.collection("connections").update(
       input.id,
@@ -126,7 +139,10 @@ export const disconnect = defineAction({
     member: z.string(),
   }),
   async handler(input, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     const filter = queryBuilder(
       query.and(

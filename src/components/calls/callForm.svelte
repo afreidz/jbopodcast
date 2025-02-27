@@ -4,12 +4,12 @@
   import { Label } from "$/components/ui/label";
   import { Input } from "$/components/ui/input";
   import Nav from "$/components/shared/nav.svelte";
+  import userState from "$/state/user.state.svelte";
   import { Calendar } from "$/components/ui/calendar";
   import { navigate } from "astro:transitions/client";
   import { scrollShadowClasses } from "$/lib/classes";
   import Avatar from "$/components/shared/avatar.svelte";
   import Sidebar from "$/components/shared/sidebar.svelte";
-  import { getCurrentUser } from "$/lib/pocketbase/client";
   import { ScrollArea } from "$/components/ui/scroll-area";
   import * as ToggleGroup from "$/components/ui/toggle-group";
   import { parseAbsoluteToLocal } from "@internationalized/date";
@@ -17,13 +17,14 @@
   import { Button, buttonVariants } from "$/components/ui/button";
   import CallFormState, { timeslots } from "$/state/call.form.state.svelte";
 
-  const callForm = new CallFormState(getCurrentUser());
+  const callForm = new CallFormState();
 
   type Props = {
     id?: string;
   };
 
   onMount(async () => {
+    await userState.refresh();
     await callForm.init(id);
   });
 
@@ -66,7 +67,6 @@
         <Input
           min="3"
           max="75"
-          required
           id="title"
           type="text"
           name="title"

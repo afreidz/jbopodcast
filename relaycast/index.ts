@@ -8,7 +8,6 @@ import SysTray, { Menu, MenuItem } from "systray";
 const relay = new RelaySocket();
 
 relay.on("message", ({ event, message }) => {
-  console.log(message);
   if (event === "server-stop") {
     tray.kill();
   } else if (event === "stream-start") {

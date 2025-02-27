@@ -1,6 +1,5 @@
 import PocketBase from "pocketbase";
 import * as pbf from "@nedpals/pbf";
-import type { AstroCookies } from "astro";
 import { ActionError } from "astro:actions";
 import { PUBLIC_PB_ENDPOINT } from "astro:env/client";
 import { PB_SUPERUSER_TOKEN } from "astro:env/server";
@@ -18,15 +17,27 @@ export function queryBuilder(...q: Parameters<(typeof pbf)["stringify"]>) {
 
 export const query = pbf;
 
-export async function impersonate(cookies: AstroCookies) {
-  const { record } = cookies.get("pb_auth")?.json();
+export async function refresh(
+  client: TypedPocketBase,
+  cookie: string | null = ""
+) {
+  client.authStore.loadFromCookie(cookie ?? "");
 
-  if (!record?.id)
+  if (!client.authStore.isValid)
     throw new ActionError({
       code: "UNAUTHORIZED",
+      message: "Auth state is not valid",
     });
 
-  return (await pb
-    .collection("users")
-    .impersonate(record.id, 3600)) as TypedPocketBase;
+  try {
+    await client.collection("users").authRefresh();
+  } catch (err: unknown) {
+    console.error(err);
+    throw new ActionError({
+      code: "UNAUTHORIZED",
+      message: "Could not refresh auth",
+    });
+  }
+
+  return client;
 }

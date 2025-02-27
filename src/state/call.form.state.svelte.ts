@@ -3,7 +3,7 @@ import { actions } from "astro:actions";
 import type { Call } from "$/actions/calls";
 import client from "$/lib/pocketbase/client";
 import type { Member } from "$/actions/members";
-import type { CurrentUser } from "$/lib/pocketbase/client";
+import userState from "$/state/user.state.svelte";
 import type { SceneConfiguration } from "$/components/calls/scenes.svelte";
 import { parseAbsoluteToLocal, type DateValue } from "@internationalized/date";
 
@@ -25,7 +25,6 @@ for (let i = 1; i < 12; i++) {
 
 export default class CallFormState {
   protected _id: string = $state("");
-  protected currentUser: CurrentUser;
   protected _title: string = $state("");
   protected _guests: string[] = $state([]);
   protected _loading: boolean = $state(true);
@@ -33,9 +32,7 @@ export default class CallFormState {
   protected _scheduled: Date = $state(new Date());
   protected _scenes: SceneConfiguration[] = $state([]);
 
-  constructor(m: CurrentUser) {
-    this.currentUser = m;
-
+  constructor() {
     const nextHalfHour = new Date();
     const minutes = nextHalfHour.getMinutes();
     if (minutes < 30) {
@@ -45,7 +42,8 @@ export default class CallFormState {
     }
     this._scheduled = nextHalfHour;
 
-    client.collection("users").subscribe("*", () => this.refreshAllMembers());
+    if (!import.meta.env.SSR)
+      client.collection("users").subscribe("*", () => this.refreshAllMembers());
   }
 
   get loading() {
@@ -73,12 +71,12 @@ export default class CallFormState {
   }
 
   get availableMembers() {
-    return this._allMembers.filter((u) => u.id !== this.currentUser?.id);
+    return this._allMembers.filter((u) => u.id !== userState.currentUser?.id);
   }
 
   get participants() {
     return this._allMembers.filter((u) =>
-      [this.currentUser.id, ...this._guests]
+      [userState.currentUser?.id, ...this._guests]
         .filter(Boolean)
         .some((g) => u.id === g)
     );
@@ -151,14 +149,17 @@ export default class CallFormState {
   async submit() {
     this._loading = true;
 
+    if (!userState.currentUser)
+      return toast.error("Unable to create call without a current user");
+
     if (this._id) return toast.error("Update not implemented yet");
 
     const response = await actions.calls.create({
-      title: this._title,
       guests: this._guests,
       scenes: this._scenes,
-      host: this.currentUser.id,
       scheduled: this._scheduled,
+      host: userState.currentUser.id,
+      title: this._title.length ? this._title : `Call at ${this.scheduled}`,
     });
 
     if (response.error) {

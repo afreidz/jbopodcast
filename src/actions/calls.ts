@@ -7,8 +7,9 @@ import type {
 import { z } from "astro:schema";
 import { defineAction } from "astro:actions";
 import type { ListResult } from "pocketbase";
+import { refresh } from "$/lib/pocketbase/server";
 import { ScenesTypeOptions } from "@pocketbase/types";
-import { queryBuilder, query, impersonate } from "$/lib/pocketbase/server";
+import { queryBuilder, query } from "$/lib/pocketbase/server";
 
 export const expand =
   "host,guests,scenes,scenes.A,scenes.B,scenes.C,scenes.D,activeScene,activeScene.A,activeScene.B,activeScene.C,activeScene.D";
@@ -19,7 +20,7 @@ export const SceneCreateSchema = z.object({
   B: z.string().optional(),
   C: z.string().optional(),
   D: z.string().optional(),
-  label: z.string().min(1).max(25),
+  label: z.string().max(25).optional(),
   type: z.nativeEnum(ScenesTypeOptions),
   splashURL: z.string().url().optional(),
   countdownMS: z.coerce.number().optional(),
@@ -29,16 +30,20 @@ export type SceneCreateSchema = z.infer<typeof SceneCreateSchema>;
 const CallScheama = z.object({
   host: z.string(),
   scheduled: z.coerce.date(),
+  title: z.string().max(100),
   guests: z.array(z.string()),
-  title: z.string().min(3).max(100),
   scenes: z.array(SceneCreateSchema.omit({ callId: true })),
 });
 
 export const create = defineAction({
   input: CallScheama,
   handler: async (input, context) => {
-    const client = await impersonate(context.cookies);
     const { scenes, ...data } = input;
+
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     if (scenes.length) {
       const batch = client.createBatch();
@@ -48,7 +53,12 @@ export const create = defineAction({
       });
 
       try {
-        const sr = await batch.send();
+        const sr = await batch.send().catch((err) => {
+          console.error(JSON.stringify(err, null, 2));
+          return null;
+        });
+
+        if (!sr) return null;
         return await client.collection("calls").create({
           ...data,
           scenes: sr.map((r) => r.body.id),
@@ -68,7 +78,10 @@ export const getUpcoming = defineAction({
     userId: z.string(),
   }),
   handler: async ({ date, userId }, context) => {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
 
     const filter = queryBuilder(
       query.and(
@@ -89,7 +102,10 @@ export const getUpcoming = defineAction({
 export const getById = defineAction({
   input: z.string(),
   handler: async (id, context) => {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
     return await client.collection("calls").getOne<Call>(id, { expand });
   },
 });
@@ -101,7 +117,10 @@ export const list = defineAction({
     filter: z.string().optional(),
   }),
   async handler({ page, per, filter }, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
     return await client.collection("calls").getList<Call>(page, per, {
       filter,
       expand,
@@ -116,7 +135,10 @@ export const setActiveScene = defineAction({
     scene: z.string(),
   }),
   async handler({ call, scene }, context) {
-    const client = await impersonate(context.cookies);
+    const client = await refresh(
+      context.locals.client,
+      context.request.headers.get("cookie")
+    );
     return await client
       .collection("calls")
       .update(call, { activeScene: scene });

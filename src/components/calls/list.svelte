@@ -1,9 +1,13 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Nav from "$/components/shared/nav.svelte";
+  import userState from "$/state/user.state.svelte";
   import type { PaginatedCalls } from "$/actions/calls";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import { columns } from "$/components/calls/table/columns";
   import DataTable from "$/components/calls/table/table.svelte";
+
+  onMount(async () => await userState.refresh());
 
   type Props = {
     calls: PaginatedCalls;

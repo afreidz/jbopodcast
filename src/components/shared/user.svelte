@@ -4,10 +4,10 @@
   import { Label } from "$/components/ui/label";
   import { Button } from "$/components/ui/button";
   import * as Dialog from "$/components/ui/dialog";
+  import userState from "$/state/user.state.svelte";
   import * as Sidebar from "$/components/ui/sidebar";
   import Avatar from "$/components/shared/avatar.svelte";
   import * as DropdownMenu from "$/components/ui/dropdown-menu";
-  import { getCurrentUser, refreshAuth } from "$/lib/pocketbase/client";
 
   import LogOut from "lucide-svelte/icons/log-out";
   import BadgeCheck from "lucide-svelte/icons/badge-check";
@@ -15,10 +15,9 @@
 
   const sidebar = Sidebar.useSidebar();
 
-  let user = $state(getCurrentUser());
+  let name: string = $state("");
+  let handle: string = $state("");
   let editingUserDetails: boolean = $state(false);
-  let name: string = $state(getCurrentUser()?.name ?? "");
-  let handle: string = $state(getCurrentUser()?.handle ?? "");
 
   async function updateUser(e: SubmitEvent) {
     e.preventDefault();
@@ -26,13 +25,12 @@
       name,
       handle,
     });
-    await refreshAuth();
-    user = getCurrentUser();
+    await userState.refresh();
     editingUserDetails = false;
   }
 </script>
 
-{#if user}
+{#if userState.currentUser}
   <Sidebar.Menu>
     <Sidebar.MenuItem>
       <DropdownMenu.Root>
@@ -43,15 +41,20 @@
               size="lg"
               class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              {#if user}
+              {#if userState.currentUser}
                 <Avatar
                   class="size-8"
-                  name={user.handle || user.name}
-                  email={user.email}
+                  name={userState.currentUser.handle ||
+                    userState.currentUser.name}
+                  email={userState.currentUser.email}
                 />
                 <div class="grid flex-1 text-left text-sm leading-tight">
-                  <span class="truncate font-semibold">{user.name}</span>
-                  <span class="truncate text-xs">{user.email}</span>
+                  <span class="truncate font-semibold"
+                    >{userState.currentUser.name}</span
+                  >
+                  <span class="truncate text-xs"
+                    >{userState.currentUser.email}</span
+                  >
                 </div>
                 <ChevronsUpDown class="ml-auto size-4" />
               {/if}
@@ -68,12 +71,17 @@
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
               <Avatar
                 class="size-8"
-                name={user.handle || user.name}
-                email={user.email}
+                name={userState.currentUser.handle ||
+                  userState.currentUser.name}
+                email={userState.currentUser.email}
               />
               <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-semibold">{user.name}</span>
-                <span class="truncate text-xs">{user.email}</span>
+                <span class="truncate font-semibold"
+                  >{userState.currentUser.name}</span
+                >
+                <span class="truncate text-xs"
+                  >{userState.currentUser.email}</span
+                >
               </div>
             </div>
           </DropdownMenu.Label>

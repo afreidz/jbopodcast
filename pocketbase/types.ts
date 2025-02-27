@@ -133,7 +133,7 @@ export type ScenesRecord = {
 	countdownMS?: number
 	created?: IsoDateString
 	id: string
-	label: string
+	label?: string
 	splashURL?: string
 	type: ScenesTypeOptions
 	updated?: IsoDateString
