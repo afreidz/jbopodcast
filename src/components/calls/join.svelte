@@ -4,7 +4,6 @@
   import type { Member } from "$/actions/members";
   import Feed from "$/components/calls/feed.svelte";
   import Tools from "$/components/calls/tools.svelte";
-  import * as Terminal from "$/components/ui/terminal";
   import { getCurrentUser } from "$/lib/pocketbase/client";
   import Sidebar from "$/components/shared/sidebar.svelte";
   import Devices from "$/components/shared/devices.svelte";
@@ -116,22 +115,6 @@
           {@render MainFeed(connection.activeScene?.expand?.D, "D")}
         {/if}
       </main>
-    {:else}
-      <Terminal.Loop>
-        <Terminal.Root class="m-6 max-w-xl" delay={250}>
-          <Terminal.TypingAnimation
-            >&gt; Initializing call</Terminal.TypingAnimation
-          >
-          <Terminal.Loading delay={5000}>
-            {#snippet loadingMessage()}
-              Establishing connection to peers
-            {/snippet}
-            {#snippet completeMessage()}
-              <span class="text-green-500">✔</span>
-            {/snippet}
-          </Terminal.Loading>
-        </Terminal.Root>
-      </Terminal.Loop>
     {/if}
   </Sidebar>
 {/if}
