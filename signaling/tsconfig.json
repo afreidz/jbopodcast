@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
+    "outDir": "dist"
+  },
+  "include": ["./server.ts"],
+  "exclude": ["**/node_modules"]
+}

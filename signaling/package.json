@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node .",
+    "dev": "node --experimental-strip-types --env-file=.env ./server.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "^8.18.1"
+  }
+}

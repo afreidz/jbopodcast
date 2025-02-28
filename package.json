@@ -17,7 +17,8 @@
     "node": "^v22.12"
   },
   "workspaces": [
-    "relaycast"
+    "relaycast",
+    "signaling"
   ],
   "dependencies": {
     "@astrojs/node": "^9.1.0",
