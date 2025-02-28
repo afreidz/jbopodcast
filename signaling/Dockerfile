@@ -15,7 +15,7 @@ RUN npm install
 COPY ./signaling .
 
 # Build your application.
-RUN npm run build -w signaling
+RUN npm run build
 
 # Set environment variables and expose the appropriate port.
 ENV HOST=0.0.0.0
