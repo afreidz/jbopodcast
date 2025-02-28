@@ -12,10 +12,10 @@ RUN rm -rf node_modules package-lock.json
 RUN npm install
 
 # Copy the rest of your application files.
-COPY . .
+COPY ./signaling .
 
 # Build your application.
-RUN npm run build
+RUN npm run build -w signaling
 
 # Set environment variables and expose the appropriate port.
 ENV HOST=0.0.0.0
